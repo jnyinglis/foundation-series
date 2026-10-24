@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Avatar, AVATAR_FILES, type Actor } from './avatar';
+import { Avatar, avatarFileFor, type Actor } from './avatar';
 
 // Walkable interiors with stylised procedural characters. The first interior is
 // the cantina of Twilight City on Radole. Characters are built from primitives so
@@ -216,7 +216,25 @@ export class Interior {
     });
     this.scene.add(root);
     // lights for the characters only; the room itself is baked
-    if (this.sceneName === 'terrace') {
+    if (this.sceneName === 'ruins') {
+      const skyGeo = new THREE.SphereGeometry(200, 32, 16);
+      const skyMat = new THREE.ShaderMaterial({
+        side: THREE.BackSide, depthWrite: false,
+        vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader: `precision highp float; varying vec3 vDir;
+          void main(){ vec3 d = normalize(vDir); float t = clamp(d.y, 0.0, 1.0);
+            vec3 horizon = vec3(0.85, 0.8, 0.7); vec3 zenith = vec3(0.3, 0.45, 0.8);
+            vec3 col = mix(horizon, zenith, smoothstep(0.0, 0.5, t));
+            float sun = pow(max(dot(d, normalize(vec3(0.5, 0.6, -0.4))), 0.0), 400.0);
+            col += vec3(1.0, 0.95, 0.8) * sun * 3.0; gl_FragColor = vec4(col, 1.0); }`,
+      });
+      const sky = new THREE.Mesh(skyGeo, skyMat); this.scene.add(sky); this.disposables.push(skyGeo, skyMat);
+      this.scene.add(new THREE.HemisphereLight(0x8aa0d0, 0x4a4a28, 1.2));
+      const sun = new THREE.DirectionalLight(0xfff0d0, 2.0); sun.position.set(8, 14, -6); this.scene.add(sun);
+    } else if (this.sceneName === 'estate') {
+      this.scene.add(new THREE.HemisphereLight(0xf0f4ff, 0xa0a098, 1.6));
+      for (const z of [10, 2, -6]) { const l = new THREE.PointLight(0xffffff, 12, 14, 1.4); l.position.set(0, 5.5, -z); this.scene.add(l); }
+    } else if (this.sceneName === 'terrace') {
       // dusk sky over the city
       const skyGeo = new THREE.SphereGeometry(160, 32, 16);
       const skyMat = new THREE.ShaderMaterial({
@@ -267,7 +285,7 @@ export class Interior {
     const base = import.meta.env.BASE_URL;
     await Promise.all(figures.map(async (f) => {
       let actor: Actor | null = null;
-      const file = AVATAR_FILES[f.name];
+      const file = avatarFileFor(f.name);
       if (file) {
         try { actor = await Avatar.load(f.name, `${base}characters/${file}.glb`, f.seated); } catch { actor = null; }
       }

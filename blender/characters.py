@@ -89,6 +89,11 @@ CHARACTERS = {
         skin='young_caucasian_female2.mhmat', hair='ponytail01.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
         clothes=['thegreatengineer_galactic_warrior_uniform.mhclo', 'culturalibre_heroine_boots_2.mhclo'],
     ),
+    'bander': dict(
+        macro=dict(gender=0.5, age=0.45, muscle=0.35, weight=0.38, proportions=0.7, height=0.7, cupsize=0.3, firmness=0.6, race=race(0.9, 0.05, 0.05)),
+        skin='young_caucasian_female2.mhmat', hair=None, eyebrows=None, eyelashes='eyelashes01.mhclo',
+        clothes=['matcreator_mc-skinsuit_2022.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',

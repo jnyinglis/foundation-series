@@ -1,7 +1,7 @@
 // Data format for story scripts. A story is a list of scenes. Each scene fires
 // once when its trigger happens, and runs its steps in order.
 
-export type Place = 'space' | 'city' | 'cantina' | 'archive' | 'library' | 'sacratorium' | 'terrace' | 'vault';
+export type Place = 'space' | 'city' | 'cantina' | 'archive' | 'library' | 'sacratorium' | 'terrace' | 'vault' | 'ruins' | 'estate';
 
 export type Trigger =
   | { type: 'start' }

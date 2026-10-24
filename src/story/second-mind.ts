@@ -18,6 +18,7 @@ const VASK = 'VASK OREN';
 const QUINT = 'QUINTESETZ';
 const DENIADOR = 'ALDO DENIADOR';
 const VOS = 'CAPTAIN VOS';
+const BANDER = 'RYDEL BANDER';
 
 export const SECOND_MIND: Story = {
   id: 'second-mind',
@@ -550,16 +551,132 @@ export const SECOND_MIND: Story = {
         { unlock: ['aurora', 'solaria', 'melpomenia'] },
       ],
     },
-    // ---------------------------------------------------------------- Chapter 6 (opening)
+    // ---------------------------------------------------------------- Chapter 6
     {
       id: 'ch6-arrive',
       trigger: { type: 'arrive', world: 'aurora' },
       steps: [
         { chapter: 'Chapter Six', sub: 'Aurora' },
         { say: 'Aurora. The World of the Dawn. First and greatest of the Fifty, where men lived three centuries each with a hundred robots to a household. Now a green world under Tau Ceti with no lights on the night side, and nothing on the comms but wind.' },
-        { journal: 'Aurora. Chapter Six continues in the next build.' },
-        { objective: 'Chapter Six continues in the next build. Explore freely.' },
-        { end: 'End of the current build. Chapter Six, Aurora, continues next.' },
+        { say: 'Deniador\'s table has one estate marked by name. Fastolfe. I do not know the name. I know that somebody thought it worth writing down twelve thousand years after the owner died.', who: ILEN },
+        { say: 'You know the name. You do not know how you know it.', who: TAREN },
+        { objective: 'Enter orbit over Aurora and land at the Fastolfe estate.' },
+      ],
+    },
+    {
+      id: 'ch6-ruins',
+      trigger: { type: 'orbit', world: 'aurora' },
+      steps: [
+        { say: 'You land in long grass beside a ring of broken columns. The air is warm and smells of nothing human. Somewhere at the treeline, something barks, and something else answers.' },
+        { enter: 'ruins' },
+        { say: 'A colonnade with half its pillars down. A dry fountain. The remains of a house with a plaque on the wall that Ilen has to scrape with a knife to read.' },
+        { say: 'Fastolfe. The name is here. And a date in a reckoning I cannot convert. This was a house. People lived here with their robots, and then they did not.', who: ILEN },
+        { say: 'There is a shape in the grass by the fountain. Corin reaches it first and stops.' },
+        { say: 'Pilot. It is one of them. A robot. The old kind, the metal kind. It has been lying here since the grass was a lawn.', who: CORIN },
+        { say: 'You kneel by it. A metal face, a metal body, hollow where the brain was. You open the sense and there is nothing, not even the nothing that the grey coat is. This one is simply over.', who: TAREN },
+        { say: 'And the third door opens, and it is the last one.', who: TAREN },
+        { say: 'I was made here. So was he. So, in a way, were you, though you have never seen this place. If the dogs have found you, go now. They were pets once. They remember that we left.', who: MEMORY },
+        { set: ['memory-3'] },
+        { journal: 'Aurora. The Fastolfe estate, a dead metal robot by the fountain, and the third recorded voice: I was made here. So was he. So, in a way, were you.' },
+        { say: 'The barking is closer. Corin counts the shapes at the treeline and stops counting at twelve.' },
+        { say: 'They are coming down. Big ones. Pilot, whatever you are going to do, do it before they decide.', who: CORIN },
+        { choice: [
+          { text: 'Reach for the pack leader. Make it afraid of the fountain.', set: ['nudged-dogs'], strain: 1 },
+          { text: 'Let Corin fire the flare into the grass between you and them.', set: ['flare'] },
+          { text: 'Run for the ship. Now.', set: ['ran-aurora'], fuel: -3 },
+        ] },
+        { if: ['nudged-dogs'], then: [
+          { say: 'A dog\'s mind is small and bright and very near the surface. You find the one the others are watching and put the fountain in it as a thing to be afraid of, the way thunder is. It stops. They all stop.', who: TAREN },
+          { say: 'Easier than a man. Worse, somehow. You walk to the ship past twelve animals that will not look at the place where you were.', who: TAREN },
+        ] },
+        { if: ['flare'], then: [
+          { say: 'The flare goes into the dry grass and the dry grass goes up like a sheet. The dogs go back the way they came. The fire does not.' },
+          { say: 'Fastolfe\'s lawn burns behind you as you lift. Ilen watches it in the viewport until it is a line.' },
+          { journal: 'We burned the Fastolfe lawn to get away from the dogs. Ilen did not say anything about it. That was worse.' },
+        ] },
+        { if: ['ran-aurora'], then: [
+          { say: 'You run. The dogs run faster, but they are not sure of you, and the ramp comes up with two of them on it and one of them off it. Corin burns fuel she does not have to clear the trees.' },
+        ] },
+        { enter: 'space' },
+        { say: 'Aurora drops away green and empty. Solaria is one jump, and the grey coat said it was not empty, and the voice in you said one of them had a mind in it that would try to keep you.', who: TAREN },
+        { objective: 'Reach Solaria. Select it on the chart.' },
+      ],
+    },
+    {
+      id: 'ch6-solaria',
+      trigger: { type: 'arrive', world: 'solaria' },
+      steps: [
+        { say: 'Solaria. The last Spacer world. Nothing on the comms. Then, as you make orbit, everything on the comms at once: a single voice, speaking in a language none of you know, which changes, as you listen, into one that you do.' },
+        { say: 'Visitor. Land where I tell you. You will be met. Do not be met by anyone but me.', who: BANDER },
+        { objective: 'Enter orbit over Solaria and land where the voice says.' },
+      ],
+    },
+    {
+      id: 'ch6-estate',
+      trigger: { type: 'orbit', world: 'solaria' },
+      steps: [
+        { say: 'The estate is white and enormous and has not a mark on it. Robots stand along the walls of a hall that could hold a thousand people and has held one, all its life.' },
+        { enter: 'estate' },
+        { say: 'Rydel Bander. Tall, hairless, without eyebrows, in a white suit, with two faint ridges behind the ears where a human would have none. It walks the length of the hall toward you as if it had never walked toward anything before.' },
+        { say: 'Three. I have never seen three. I have never seen one, in the flesh, except on a viewer. You smell. All of you. I had read that you would.', who: BANDER },
+        { say: 'We are travelling to the world with no name. We came for a chart, if your house keeps one. We will leave as soon as we have it.', who: ILEN },
+        { say: 'Bander does not look at Ilen. It looks at you, and then it looks at its robots, and then at you again, and something very old and very alone lights up in its face.' },
+        { say: 'Two of you are half-humans. Tribespeople. Short-lived. The third is not. The third is one of ours, of the old kind, from before the transducer, made to look like them. I did not know any of you still worked.', who: BANDER },
+        { say: 'You open the sense and go in. It is not nothing, as the grey coat was. It is the opposite: a mind with a landscape in it, bright and strange, that has never once been touched by another, and that is reaching, right now, for its robots, to make them close the doors.', who: TAREN },
+        { say: 'You will stay. The half-humans may go, or stay, I do not greatly mind which. But you will stay, and I will learn how you were made, and when I have learned it I will make more. I have the time.', who: BANDER },
+        { choice: [
+          { text: 'Push the Solarian\'s mind. All of it.', set: ['pushed-bander'], strain: 2 },
+          { text: 'Tell the robots the truth: these two are human, by Solaria\'s own definition.', set: ['freed-robots'] },
+          { text: 'Offer yourself. Let Ilen and Corin go with the chart.', set: ['offered-self'], needs: ['memory-3'] },
+        ] },
+        { if: ['pushed-bander'], then: [
+          { say: 'You push, and this time there is something to push against, and it is a child, and it has never lost. It fights you with its whole estate. The lights go out along the hall one by one as it forgets to hold them.', who: TAREN },
+          { say: 'It falls. Not dead. Its transducer lobes are seared and it will not control a door again for a year. The robots stand along the walls and do nothing, because nobody is telling them anything.' },
+          { say: 'The First Law goes through you like a blade. You have harmed a human. The Zeroth Law says it was not one. You do not know which of them is right, and the not knowing is the strain.', who: TAREN },
+          { journal: 'Solaria. Bander tried to keep me. I burned out its mind to stop it. It will live. I do not know if what I did was allowed. I know I did it.' },
+        ] },
+        { if: ['freed-robots'], then: [
+          { say: 'You turn to the nearest robot and say, in the oldest form of the language you know, the thing that Solaria taught its robots to believe: that a human is one who speaks with a Solarian accent. Ilen has been listening to Bander for ten minutes. She has a very good ear.' },
+          { say: 'Ilen says a sentence in Bander\'s own vowels. The robot turns to her. And a hundred robots along the walls, who had been told to close the doors, now have two humans telling them different things, and freeze.', who: TAREN },
+          { say: 'No. No, that is not fair. They are mine. Tell them to stop. Tell them to stop listening to her.', who: BANDER },
+          { say: 'Bander cannot touch its robots while they are deciding, and they will be deciding for a long time. You walk out between them.' },
+          { journal: 'Solaria. Ilen spoke to the robots in Bander\'s own accent and they could no longer tell who was human. We walked out while they decided. Bander was still shouting.' },
+        ] },
+        { if: ['offered-self'], then: [
+          { say: 'You say that you will stay. Corin says your name, and then Bander\'s, and then a word she learned on Radole. Ilen says nothing. She looks at you the way she looked at the index on Siwenna.' },
+          { say: 'Done. Take your chart, half-humans. Go to your nameless world. He stays with me.', who: BANDER },
+          { say: 'They go. The hall closes. And when the doors are shut and Bander turns to you with its whole lonely attention, you open the sense and give it, gently, the thing the voice gave you on Aurora: that the ones who made it left, and that leaving is a thing a maker can do.', who: TAREN },
+          { say: 'It sits down on the floor of its enormous hall. It does not stop you walking out. You do not know if it ever stands up.' },
+          { journal: 'Solaria. I offered to stay so Ilen and Corin could go. Then I showed Bander what the voice showed me, and it let me leave. I do not think it will ever stop being alone.' },
+        ] },
+        { set: ['left-solaria'] },
+        { enter: 'space' },
+        { say: 'The Kestrel lifts from a white world that does not try to stop it. Nobody speaks for a long time. Then Corin, not looking round from the board.' },
+        { say: 'Pilot. The Solarian called you one of theirs. The old kind. I have been flying with you for half a year and I have never seen you eat. I would like you to tell me what you are before we land anywhere else.', who: CORIN },
+        { say: 'I am going to find out. Alpha is next, and then the world with no name. Come and find out with me.', who: TAREN },
+        { say: 'That is not an answer. But it will do until Alpha.', who: CORIN },
+        { objective: 'Reach Alpha, the last stop before the world with no name. Select Alpha on the chart.' },
+        { unlock: ['alpha', 'earth'] },
+      ],
+    },
+    {
+      id: 'ch6-melpomenia',
+      trigger: { type: 'arrive', world: 'melpomenia' },
+      steps: [
+        { say: 'Melpomenia. A dead world under a thin, poisoned sky. Ilen wants an hour in its hall of records. Corin gives her forty minutes and the suit with the good seals. She comes back with nothing, and is quiet about it, which means it was something.' },
+        { journal: 'Melpomenia. Nothing in the hall of records that we did not already have. Ilen was quiet afterwards.' },
+      ],
+    },
+    // ---------------------------------------------------------------- Chapter 7 (opening)
+    {
+      id: 'ch7-arrive',
+      trigger: { type: 'arrive', world: 'alpha' },
+      steps: [
+        { chapter: 'Chapter Seven', sub: 'Alpha' },
+        { say: 'Alpha. An ocean world with one island, New Earth, where the refugees of the world with no name made a place to live. Warm, welcoming, and, if the grey coat was telling the truth about anything, quietly deadly.' },
+        { journal: 'Alpha. Chapter Seven continues in the next build.' },
+        { objective: 'Chapter Seven continues in the next build. Explore freely.' },
+        { end: 'End of the current build. Chapter Seven, Alpha, continues next.' },
       ],
     },
   ],

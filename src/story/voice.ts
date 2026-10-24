@@ -104,6 +104,13 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Karen', 'Samantha'], pitch: 0.95, rate: 1.05 },
     portrait: { key: 'vos', prompt: 'A port authority captain in her forties, auburn hair in a tight ponytail, a dark grey uniform with a high collar and a Comporellon state badge, standing at a heavy steel door under a red lamp. Formal, correct, uneasy.' },
   },
+  'RYDEL BANDER': {
+    voice: 'ballad',
+    instructions: 'A Solarian who has never met another person face to face. Childlike and imperious at once, curious, utterly without fear or manners. Slow, musing, delighted by its own cleverness.',
+    fx: 'plain',
+    fallback: { names: ['Samantha', 'Alex'], pitch: 1.1, rate: 0.92 },
+    portrait: { key: 'bander', prompt: 'A tall, hairless, androgynous Solarian with pale skin, no eyebrows, faint ridged lobes behind the ears, in a white high-collared suit, standing in a white immaculate hall with ivory robots in alcoves behind. Curious, imperious, utterly alone.' },
+  },
   MEMORY: {
     voice: 'fable',
     instructions: 'A faint recorded voice from very long ago. Old, kind, patient, slightly worn, as if played from a damaged medium. Speaks as a teacher to a child it will never meet.',

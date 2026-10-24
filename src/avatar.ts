@@ -32,7 +32,15 @@ export const AVATAR_FILES: Record<string, string> = {
   QUINTESETZ: 'quintesetz',
   'ALDO DENIADOR': 'deniador',
   'CAPTAIN VOS': 'vos',
+  'RYDEL BANDER': 'bander',
+  WRECK: 'statue',
 };
+
+/** Robots and wrecks reuse the statue file with a material override. */
+export function avatarFileFor(name: string): string | undefined {
+  if (name.startsWith('ROBOT')) return 'statue';
+  return AVATAR_FILES[name];
+}
 
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.
 const B = (n: string) => `mixamorig${n}`;
@@ -82,11 +90,16 @@ export class Avatar implements Actor {
     });
     this.head = this.bones.get(B('Head')) ?? scene;
     this.root.updateMatrixWorld(true);
-    if (name === 'STATUE') {
+    if (name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT')) {
       // a metal figure: one material, no life in it
-      const metal = new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.95, roughness: 0.32 });
+      const metal = name === 'WRECK'
+        ? new THREE.MeshStandardMaterial({ color: 0x6a4630, metalness: 0.4, roughness: 0.9 })
+        : name.startsWith('ROBOT')
+          ? new THREE.MeshStandardMaterial({ color: 0xe6e2d8, metalness: 0.55, roughness: 0.38 })
+          : new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.95, roughness: 0.32 });
       scene.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.material = metal; });
       this.statue = true;
+      if (name === 'WRECK') { scene.rotation.x = -Math.PI / 2 + 0.25; scene.rotation.z = 0.3; scene.position.y = 0.25; }
     }
     // Pose in the character's own space: X right, Y up, Z forward. Then store it as the new rest pose.
     this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), -0.95);
