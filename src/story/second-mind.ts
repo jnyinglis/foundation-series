@@ -9,6 +9,8 @@ const TAREN = 'TAREN';
 const ILEN = 'ILEN SARVO';
 const CORIN = 'CORIN PELLIS';
 const COMMS = 'COMMS';
+const SENNET = 'SENNET BARR';
+const GREY = 'GREY COAT';
 
 export const SECOND_MIND: Story = {
   id: 'second-mind',
@@ -178,7 +180,7 @@ export const SECOND_MIND: Story = {
         { journal: 'Arcturus. The Empire here is a flag and a tithe. One more jump to Siwenna.' },
       ],
     },
-    // ---------------------------------------------------------------- Chapter 3 (teaser)
+    // ---------------------------------------------------------------- Chapter 3
     {
       id: 'ch3-arrive',
       trigger: { type: 'arrive', world: 'siwenna' },
@@ -186,9 +188,152 @@ export const SECOND_MIND: Story = {
         { chapter: 'Chapter Three', sub: 'Siwenna' },
         { say: 'Siwenna. The sector capital that the Empire burned for rebelling, and then forgot. The archive is a mountain of stone on the night side, and it has been dark for a century.' },
         { say: 'Somewhere in it is the shelf where a single index was mis-filed two thousand years ago. Somewhere in you is the reason you have to find it.', who: TAREN },
-        { journal: 'Siwenna. The archive is dark. The story continues in the next build.' },
-        { objective: 'Chapter Three is not written yet. Explore freely.' },
-        { end: 'End of the current build. Chapter Three, Siwenna, comes next.' },
+        { say: 'The Barr family kept it. Ducem Barr helped Hober Mallow, and his grandchildren helped the Foundation against Riose. If anyone still holds a key, it is a Barr.', who: ILEN },
+        { objective: 'Enter orbit over Siwenna and land at the archive.' },
+      ],
+    },
+    {
+      id: 'ch3-orbit',
+      trigger: { type: 'orbit', world: 'siwenna' },
+      steps: [
+        { say: 'You set the Kestrel down on a plain of broken paving under a sky the colour of ash. The archive rises in front of you like a cliff with a door in it.' },
+        { say: 'Somebody has to keep the drive warm. And I am not a reader. Go and find your lost planet. Shout if anything with a gun turns up.', who: CORIN },
+        { enter: 'archive' },
+        { say: 'Inside, the cold is older than the Foundation. Shelves climb into darkness. A skylight has fallen in somewhere ahead and a shaft of grey light stands in the dust like a pillar.' },
+        { say: 'There is a lamp at the far end. Somebody is reading by it.' },
+        { say: 'You are late. He said you would come yesterday.', who: SENNET },
+        { say: 'An old woman does not look up from a reel of tape older than her family name. Her hands are steady. Her voice is not.' },
+        { say: 'I am Sennet Barr. This was my father\'s archive and his father\'s before that, back to Ducem. Nobody comes here. This week, two of you.', who: SENNET },
+        { choice: [
+          { text: 'Read her. (Use the sense.)', set: ['read-sennet'] },
+          { text: 'Ask who came before you.', set: ['asked-sennet'] },
+        ] },
+        { if: ['read-sennet'], then: [
+          { say: 'You open the door in your mind a crack. Fear, old and worn smooth with use. And under it something sharper, pointed at the entrance behind you. She is not afraid of you. She is afraid he will come back.', who: TAREN },
+        ], else: [
+          { say: 'A man in a grey coat. Very polite. He asked for the Sirius index and I told him what I will tell you. I do not have it.', who: SENNET },
+          { say: 'Then he looked at the shelves for a long time and left. He did not search. He did not need to. I think he was counting.', who: SENNET },
+        ] },
+        { say: 'Ilen sets the reader on the desk and threads the reel. The old woman watches the first frame of the index come up and her face changes.' },
+        { say: 'So it survived. My grandfather\'s grandfather mis-shelved it on purpose, you know. Three times they came from the Library on Trantor to correct the catalogue. Three times a Barr put it back in the wrong place.', who: SENNET },
+        { say: 'Why? What is Earth to a family on Siwenna?', who: ILEN },
+        { say: 'Nothing. That was the point. Somebody wanted it to be nothing everywhere. A Barr does not like being told what to forget.', who: SENNET },
+        { say: 'She unlocks a drawer in the desk and lays a sheet of metal foil on the lamp. A star chart. The Sirius Sector, in Imperial survey notation, with one name scratched out and its position left intact.' },
+        { say: 'This is the last chart that shows the place. I can give it to you, or I can give it to the next polite man. Tell me why it should be you.', who: SENNET },
+        { choice: [
+          { text: 'Tell her the truth. Ilen means to find Earth.', set: ['told-sennet-truth'] },
+          { text: 'Say it is Encyclopedia business and nothing more.', set: ['lied-to-sennet'] },
+          { text: 'Offer her 300 credits for it.', set: ['paid-sennet'], credits: -300 },
+        ] },
+        { if: ['told-sennet-truth'], then: [
+          { say: 'The truth, then. Good. The grey man did not offer me that. Take it. If you find the place, come back and tell an old woman what it looks like.', who: SENNET },
+          { journal: 'Sennet Barr gave us the Sirius chart because Ilen told her the truth. She asked us to come back and tell her what Earth looks like.' },
+        ] },
+        { if: ['lied-to-sennet'], then: [
+          { say: 'Encyclopedia business. Of course. Take the chart. I have kept a copy of the one thing on it that matters, and you have not asked me what that is.', who: SENNET },
+          { say: 'She means it. You feel the small cold satisfaction in her, like a stone in a shoe. Whatever she held back, she will not give it to a liar.', who: TAREN },
+          { journal: 'Sennet Barr gave us the chart but kept something back. Ilen lied to her about the purpose. Taren felt her hold it.' },
+        ] },
+        { if: ['paid-sennet'], then: [
+          { say: 'Money. Well. Money is a kind of truth, I suppose. It tells me you want it more than the grey man did. He offered nothing at all.', who: SENNET },
+          { journal: 'We bought the Sirius chart from Sennet Barr for 300 credits. She took the money without counting it.' },
+        ] },
+        { set: ['have-chart'] },
+        { say: 'Ilen folds the chart into the archive case. Behind you, at the far end of the hall, the grey light from the door changes shape.' },
+        { say: 'Pilot. Encyclopedist. Keeper. I will not take much of your time.', who: GREY },
+        { say: 'He stands just inside the entrance with his hands folded. He has not raised his voice. He does not need to. The hall carries it.' },
+        { say: 'You open the sense all the way, for the first time in sixty years, and reach for him. There is nothing. Not calm. Not control. A doorway with no room behind it.', who: TAREN },
+        { say: 'You are looking at me the way I look at you. That answers my question. We were made in the same place, you and I, a long way from here.', who: GREY },
+        { say: 'The index, please. The chart you may keep; it is already wrong. Give me the index and the Encyclopedist walks out of here with you, and nobody on Siwenna remembers either of you.', who: GREY },
+        { choice: [
+          { text: 'Refuse. Run for the ship.', set: ['ran-siwenna'], fuel: -5, goto: 'ch3-run' },
+          { text: 'Push his mind, with everything you have.', set: ['pushed-greycoat'], strain: 2, goto: 'ch3-push' },
+          { text: 'Give him the index. Keep the chart.', set: ['gave-index'], goto: 'ch3-give' },
+        ] },
+      ],
+    },
+    {
+      id: 'ch3-run',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You do not answer him. You take Ilen by the arm and go, down the side aisle, through the dust, past the fallen shelf. He does not follow. He turns his head to watch you, and that is all.' },
+        { say: 'Kestrel, I have a man in a grey coat walking out of your archive like he owns it. Lifting now. Door is open. Move.', who: COMMS },
+        { say: 'Corin has the drive hot before you reach the ramp. The paving drops away. The archive becomes a cliff, then a line, then nothing.' },
+        { journal: 'We ran from the grey coat at Siwenna. He did not follow. He did not need to. We burned fuel getting out.' },
+        { goto: 'ch3-after' },
+      ],
+    },
+    {
+      id: 'ch3-push',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You push. It is like putting your whole weight against a door and finding there is no wall around it. You fall through into nothing and the nothing pushes back.', who: TAREN },
+        { say: 'Something tears. Not in him. In you. The First Law screams that you are harming a human and the Zeroth Law whispers that you are not, and between them your mind goes white.', who: TAREN },
+        { say: 'When you can see again, he has not moved. He is looking at you with what, in a man, would be interest.' },
+        { say: 'That was unwise. But informative. You do not know what you are, do you. He never told you. Go. I will not stop you today.', who: GREY },
+        { say: 'He steps aside from the door. Ilen does not understand what happened and does not ask until you are in the air. Then she asks nothing else for an hour.' },
+        { journal: 'I tried to push the grey coat\'s mind. There was nothing there to push, and the attempt nearly broke me. He let us go. He said somebody never told me what I am.' },
+        { goto: 'ch3-after' },
+      ],
+    },
+    {
+      id: 'ch3-give',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You take the reel from the case before Ilen can stop you and hold it out. She says your name once, very quietly, in a voice you have not heard her use.' },
+        { say: 'Thank you. You have made a sensible choice, which is rarer than it should be. The chart will not help you. But you will try. That is what you are for.', who: GREY },
+        { say: 'He takes the reel and goes. Ilen stands in the shaft of grey light with her empty case and does not look at you.' },
+        { say: 'Sixty years. I spent sixty years on that index, pilot. You gave it away in a sentence.', who: ILEN },
+        { journal: 'I gave the grey coat the index to buy our way out of Siwenna. Ilen has the chart. She has not forgiven me.' },
+        { goto: 'ch3-after' },
+      ],
+    },
+    {
+      id: 'ch3-after',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { enter: 'space' },
+        { say: 'Siwenna falls behind. Corin flies. Ilen sits with the chart spread across her knees and does not speak for a long time.' },
+        { say: 'He let us go. Why would he let us go?', who: ILEN },
+        { say: 'Because he already knows where we are going.', who: TAREN },
+        { say: 'The chart is an Imperial survey. It was drawn from the master catalogue on Trantor, in the Galactic Library. If the name was scratched out here, it was scratched out there first. And somebody on Trantor still remembers doing it.', who: ILEN },
+        { say: 'Trantor. Lovely. Forty billion people and a government that shoots librarians. I know the back way in, through Cinna and Iwernia, if you do not mind farmers.', who: CORIN },
+        { objective: 'Reach Trantor by way of Cinna and Iwernia. Select Trantor on the chart.' },
+        { unlock: ['cinna', 'iwernia', 'trantor'] },
+      ],
+    },
+    {
+      id: 'ch3-cinna',
+      trigger: { type: 'arrive', world: 'cinna' },
+      steps: [
+        { say: 'Cinna. A quiet Imperial world with nothing to recommend it, which is why people who want to be left alone say they come from here. Hari Seldon\'s companion did. Nobody ever checked.', who: ILEN },
+        { say: 'Dors Venabili. The one they say was not human. You read a lot, for a pilot.', who: CORIN },
+        { say: 'You say nothing. You have read that story too, and lately you have been reading it differently.', who: TAREN },
+      ],
+    },
+    {
+      id: 'ch3-iwernia',
+      trigger: { type: 'arrive', world: 'iwernia' },
+      steps: [
+        { say: 'Iwernia. One of the twenty worlds that fed Trantor, once. Corin takes on water and fresh food from a farmer who has never seen a Foundation coin and bites it.' },
+        { say: 'One more jump. The core is bright enough here to read by. Trantor is in the middle of it, a world that does not know it has already died.', who: ILEN },
+      ],
+    },
+    // ---------------------------------------------------------------- Chapter 4 (opening)
+    {
+      id: 'ch4-arrive',
+      trigger: { type: 'arrive', world: 'trantor' },
+      steps: [
+        { chapter: 'Chapter Four', sub: 'Trantor' },
+        { say: 'Trantor. Forty billion people under one roof of steel. The capital of an Empire that has not noticed it is over. The Galactic Library is somewhere under that roof, and the Second Foundation is somewhere inside the Library, and neither of them is expecting you.' },
+        { say: 'Traffic control gives you a lane and a number and does not ask who you are. Nobody has asked who you are in sixty years. You take the Kestrel down through the cloud deck.', who: TAREN },
+        { enter: 'city' },
+        { say: 'The city opens underneath you like a wound that has healed over steel. Towers rise past the ship on both sides. Lights, in every one of them, all the way down.' },
+        { say: 'I grew up on a world with one city. This is one city with a world inside it. How do you find a library in that?', who: CORIN },
+        { say: 'You ask a librarian.', who: ILEN },
+        { journal: 'Trantor. We are in the atmosphere, over the city. The Library is somewhere below. Chapter Four continues in the next build.' },
+        { objective: 'Chapter Four continues in the next build. Fly the city. Press L to return to orbit.' },
+        { end: 'End of the current build. Chapter Four, Trantor, continues next.' },
       ],
     },
   ],

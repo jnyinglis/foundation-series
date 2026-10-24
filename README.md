@@ -25,7 +25,7 @@ The `dist/` folder can be hosted on GitHub Pages or any static host.
   with its origin memory blocked. An Encyclopedist named Ilen Sarvo has found the
   one surviving index entry for a world called Earth. Someone has erased every
   other copy for ten thousand years. Chapters unlock worlds as the story moves.
-  Chapters one and two are written. Chapter three, Siwenna, is next.
+  Chapters one to three are written, and chapter four opens over Trantor.
 
 Stories are data. See `src/story/types.ts` for the format and
 `src/story/second-mind.ts` for the script. A scene fires on a trigger (start,
@@ -74,7 +74,8 @@ Trantor), a seed, a star, and a short lore entry. See `src/data/worlds.ts`.
 
 ## Places
 
-Press L in orbit to land where a site is charted. Trantor opens an atmospheric
+Press L in orbit to land where a site is charted. Siwenna opens the dark Imperial
+archive. Trantor opens an atmospheric
 flight over the world-city: tens of thousands of instanced towers, lit windows,
 traffic lanes and fog, all procedural. Radole opens the Twilight City cantina, a
 walkable interior with stylised characters built from primitives. In the story,
@@ -92,10 +93,11 @@ such as lamps and bottles stay live so they bloom.
 ```bash
 brew install --cask blender     # once
 npm run scene:cantina           # builds public/scenes/cantina.glb and cantina.json
+npm run scene:archive           # the Siwenna archive
 npm run scene:cantina -- --fast # quick low-sample preview
 ```
 
-`blender/cantina.py` lays out the room, assigns procedural node materials,
+Shared helpers live in `blender/common.py`. `blender/cantina.py` lays out the room, assigns procedural node materials,
 places area lights and an emissive window, joins the static geometry into a
 shell and a furniture mesh, unwraps them, bakes a combined pass per mesh, and
 exports glTF. It also writes the collider boxes, spawn point and character

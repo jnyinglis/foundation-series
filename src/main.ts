@@ -159,12 +159,14 @@ function leaveCity(): void {
   view = 'space';
 }
 let interiorLoading = false;
-async function enterInterior(): Promise<void> {
-  if (view === 'interior' || interiorLoading) return;
+const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive' };
+async function enterInterior(name = 'cantina'): Promise<void> {
+  if ((view === 'interior' && interior?.sceneName === name) || interiorLoading) return;
   leaveCity();
+  leaveInterior();
   interiorLoading = true;
-  hud.setStatus('LANDING · TWILIGHT CITY', 'warn');
-  const next = new Interior();
+  hud.setStatus('LANDING', 'warn');
+  const next = new Interior(name);
   await next.load();
   interiorLoading = false;
   interior = next;
@@ -172,7 +174,7 @@ async function enterInterior(): Promise<void> {
   view = 'interior';
   ship.releasePointer();
   hud.setMarker(0, 0, false, false, 0, '');
-  hud.showMessage('Twilight City cantina. Click to look, WASD to walk. L returns to the ship.', 5000);
+  hud.showMessage(`${PLACE_NAMES[name] ?? name}. Click to look, WASD to walk. L returns to the ship.`, 5000);
   audio.blip(900);
 }
 function leaveInterior(): void {
@@ -183,9 +185,9 @@ function leaveInterior(): void {
   camera.fov = 62; camera.updateProjectionMatrix();
   view = 'space';
 }
-async function enterPlace(place: 'space' | 'cantina' | 'city'): Promise<void> {
+async function enterPlace(place: 'space' | 'cantina' | 'city' | 'archive'): Promise<void> {
   dialogue.hide();
-  if (place === 'cantina') await enterInterior();
+  if (place === 'cantina' || place === 'archive') await enterInterior(place);
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
@@ -196,7 +198,8 @@ function toggleLanding(): void {
   if (view !== 'space') { leaveCity(); leaveInterior(); hud.showMessage(`Back in orbit over ${world.name}.`, 3000); return; }
   if (!orbiting) { hud.showMessage('Enter orbit first.', 2500); return; }
   if (world.id === 'trantor') enterCity();
-  else if (world.id === 'radole') void enterInterior();
+  else if (world.id === 'radole') void enterInterior('cantina');
+  else if (world.id === 'siwenna') void enterInterior('archive');
   else hud.showMessage('No landing site is charted here yet.', 3000);
 }
 dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };
@@ -462,7 +465,7 @@ function frame(): void {
     camera.updateMatrixWorld();
     audio.setThrottle(0, false);
     hud.setFlight(0, 0, false, 0, state.fuel, FUEL_CAPACITY, state.credits, dateText());
-    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? 'TWILIGHT CITY · L TO RETURN' : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
+    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${(PLACE_NAMES[interior.sceneName] ?? interior.sceneName).toUpperCase()} · L TO RETURN` : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
   } else {
     ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);
@@ -510,7 +513,7 @@ function frame(): void {
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    const landing = world.id === 'trantor' || world.id === 'radole';
+    const landing = world.id === 'trantor' || world.id === 'radole' || world.id === 'siwenna';
     if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 

@@ -48,6 +48,20 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Tessa', 'Fiona', 'Victoria', 'Google UK English Female'], pitch: 1.05, rate: 1.08 },
     portrait: { key: 'corin', prompt: 'A brisk, confident trader pilot in her late twenties, weathered skin, cropped sun-bleached hair, a worn brown Trader flight jacket with the patches cut off, a half-smile, dry amusement in her eyes. A cold cavern port with fuel lights behind her.' },
   },
+  'SENNET BARR': {
+    voice: 'shimmer',
+    instructions: 'An old woman, keeper of a dead archive. Slow, dry, precise, a little amused by the living. Long pauses. Never hurried.',
+    fx: 'plain',
+    fallback: { names: ['Moira', 'Karen', 'Samantha'], pitch: 0.9, rate: 0.88 },
+    portrait: { key: 'sennet', prompt: 'A very old woman, keeper of a ruined Imperial archive, white hair in a tight bun, deep lines, sharp pale eyes, a worn dark robe with a brass reading lamp beside her and shelves of rotting index boxes behind. Patient, unimpressed, watchful.' },
+  },
+  'GREY COAT': {
+    voice: 'echo',
+    instructions: 'A courteous man with no emotion at all. Perfectly even pace, soft, unhurried, every word placed exactly. Never rises, never falls. Not cold: absent.',
+    fx: 'plain',
+    fallback: { names: ['Daniel', 'Alex'], pitch: 0.95, rate: 0.9 },
+    portrait: { key: 'greycoat', prompt: 'A neat man of indeterminate age in a plain grey coat buttoned to the throat, smooth unlined face, short grey hair, pale eyes that give nothing back, standing in the doorway of a dark stone hall with cold light behind him. Calm, polite, utterly still.' },
+  },
   COMMS: {
     voice: 'onyx',
     instructions: 'A flat, clipped port-authority radio operator. Bored, procedural, no emotion. Short pauses between clauses.',

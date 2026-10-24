@@ -14,7 +14,7 @@ export interface StoryHooks {
   crew(name: string): void;
   lock(locked: boolean): void;
   end(text: string): void;
-  enter(place: 'space' | 'cantina' | 'city'): Promise<void>;
+  enter(place: 'space' | 'cantina' | 'city' | 'archive'): Promise<void>;
   save(): void;
 }
 

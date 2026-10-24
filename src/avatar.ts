@@ -24,6 +24,7 @@ export const AVATAR_FILES: Record<string, string> = {
   PATRON_A: 'patron_a',
   PATRON_B: 'patron_b',
   TAREN: 'taren',
+  'SENNET BARR': 'sennet',
 };
 
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.

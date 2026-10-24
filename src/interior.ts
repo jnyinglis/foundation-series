@@ -171,7 +171,7 @@ export class Interior {
   /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
   baked = false;
 
-  constructor() {
+  constructor(readonly sceneName: string = 'cantina') {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     document.addEventListener('mousemove', this.onMouse);
@@ -182,8 +182,8 @@ export class Interior {
     const base = import.meta.env.BASE_URL;
     try {
       const [gltf, meta] = await Promise.all([
-        new GLTFLoader().loadAsync(`${base}scenes/cantina.glb`),
-        fetch(`${base}scenes/cantina.json`).then((r) => { if (!r.ok) throw new Error('no meta'); return r.json() as Promise<SceneMeta>; }),
+        new GLTFLoader().loadAsync(`${base}scenes/${this.sceneName}.glb`),
+        fetch(`${base}scenes/${this.sceneName}.json`).then((r) => { if (!r.ok) throw new Error('no meta'); return r.json() as Promise<SceneMeta>; }),
       ]);
       this.installBaked(gltf.scene, meta);
       this.baked = true;
@@ -216,9 +216,16 @@ export class Interior {
     });
     this.scene.add(root);
     // lights for the characters only; the room itself is baked
-    const hemi = new THREE.HemisphereLight(0x8a7a6a, 0x1a1410, 1.2); this.scene.add(hemi);
-    for (const [x, z] of [[-6.5, -6.4], [0, 0], [6.5, 6.4], [-6.5, 6.4], [6.5, -6.4], [0, -6.4], [0, 6.4]]) {
-      const l = new THREE.PointLight(0xffb070, 10, 12, 1.6); l.position.set(x, 4.8, z); this.scene.add(l);
+    if (this.sceneName === 'archive') {
+      const hemi = new THREE.HemisphereLight(0x5a6a8a, 0x100c0a, 0.7); this.scene.add(hemi);
+      const sky = new THREE.PointLight(0x9ab4ff, 14, 16, 1.5); sky.position.set(0, 8, -4); this.scene.add(sky);
+      const lamp = new THREE.PointLight(0xffb070, 8, 8, 1.6); lamp.position.set(0.9, 1.8, -11.7); this.scene.add(lamp);
+      const door = new THREE.PointLight(0xffb070, 4, 10, 1.6); door.position.set(0, 3, 12); this.scene.add(door);
+    } else {
+      const hemi = new THREE.HemisphereLight(0x8a7a6a, 0x1a1410, 1.2); this.scene.add(hemi);
+      for (const [x, z] of [[-6.5, -6.4], [0, 0], [6.5, 6.4], [-6.5, 6.4], [6.5, -6.4], [0, -6.4], [0, 6.4]]) {
+        const l = new THREE.PointLight(0xffb070, 10, 12, 1.6); l.position.set(x, 4.8, z); this.scene.add(l);
+      }
     }
     for (const c of meta.colliders) this.colliders.push({ min: new THREE.Vector3(c.min[0], c.min[1], c.min[2]), max: new THREE.Vector3(c.max[0], c.max[1], c.max[2]) });
     this.bounds = meta.bounds;
