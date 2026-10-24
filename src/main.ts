@@ -158,10 +158,16 @@ function leaveCity(): void {
   placeShip();
   view = 'space';
 }
-function enterInterior(): void {
-  if (view === 'interior') return;
+let interiorLoading = false;
+async function enterInterior(): Promise<void> {
+  if (view === 'interior' || interiorLoading) return;
   leaveCity();
-  interior = new Interior();
+  interiorLoading = true;
+  hud.setStatus('LANDING · TWILIGHT CITY', 'warn');
+  const next = new Interior();
+  await next.load();
+  interiorLoading = false;
+  interior = next;
   renderPass.scene = interior.scene;
   view = 'interior';
   ship.releasePointer();
@@ -179,7 +185,7 @@ function leaveInterior(): void {
 }
 async function enterPlace(place: 'space' | 'cantina' | 'city'): Promise<void> {
   dialogue.hide();
-  if (place === 'cantina') enterInterior();
+  if (place === 'cantina') await enterInterior();
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
@@ -190,7 +196,7 @@ function toggleLanding(): void {
   if (view !== 'space') { leaveCity(); leaveInterior(); hud.showMessage(`Back in orbit over ${world.name}.`, 3000); return; }
   if (!orbiting) { hud.showMessage('Enter orbit first.', 2500); return; }
   if (world.id === 'trantor') enterCity();
-  else if (world.id === 'radole') enterInterior();
+  else if (world.id === 'radole') void enterInterior();
   else hud.showMessage('No landing site is charted here yet.', 3000);
 }
 dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };

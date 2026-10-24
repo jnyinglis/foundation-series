@@ -82,6 +82,26 @@ chapter two moves into the cantina for the meeting with Corin. Characters turn
 to the speaker, gesture, and move their mouths to the voice clip. A glTF avatar
 can replace a procedural figure later through the same `Figure` interface.
 
+## Blender scenes
+
+Interiors are built by script in Blender, run headless, with the lighting baked
+into texture atlases. The game draws the baked meshes unlit, so a room with
+soft shadows and bounced light costs almost nothing at runtime. Emissive props
+such as lamps and bottles stay live so they bloom.
+
+```bash
+brew install --cask blender     # once
+npm run scene:cantina           # builds public/scenes/cantina.glb and cantina.json
+npm run scene:cantina -- --fast # quick low-sample preview
+```
+
+`blender/cantina.py` lays out the room, assigns procedural node materials,
+places area lights and an emissive window, joins the static geometry into a
+shell and a furniture mesh, unwraps them, bakes a combined pass per mesh, and
+exports glTF. It also writes the collider boxes, spawn point and character
+placements that `src/interior.ts` reads. If the scene files are missing, the
+game falls back to the procedural room.
+
 ## Portraits
 
 Each speaking character has a painted portrait beside the dialogue, generated
@@ -126,6 +146,7 @@ src/story/             story format, engine, and scripts
 src/dialogue.ts        dialogue panel, portraits and chapter cards
 src/city.ts            procedural Trantor flythrough
 src/interior.ts        walkable interiors and procedural characters
+blender/               headless Blender scene builders
 scripts/connectivity.ts  checks that every world is reachable by jump chains
 ```
 

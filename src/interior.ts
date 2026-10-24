@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Walkable interiors with stylised procedural characters. The first interior is
 // the cantina of Twilight City on Radole. Characters are built from primitives so
@@ -120,6 +121,32 @@ export class Figure {
 
 interface Box { min: THREE.Vector3; max: THREE.Vector3 }
 
+interface SceneMeta {
+  colliders: { min: number[]; max: number[] }[];
+  bounds: { x: number; z: number };
+  spawn: { pos: number[]; yaw: number };
+  figures: { name: string; pos: number[]; yaw: number; seated: boolean }[];
+}
+
+const WINDOW_FRAG = /* glsl */ `
+  precision highp float; varying vec3 vWorld; uniform float uTime;
+  float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+  float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
+  void main(){
+    // window spans x in [-10, 10] and y in [1, 5.2] in room space
+    vec2 vUv = vec2((vWorld.x + 10.0) / 20.0, clamp((vWorld.y - 1.0) / 4.2, 0.0, 1.0));
+    vec3 ice = vec3(0.35,0.55,0.8); vec3 band = vec3(0.95,0.55,0.25); vec3 night = vec3(0.02,0.03,0.08);
+    float t = vUv.x; vec3 sky = mix(ice, band, smoothstep(0.35,0.75,t)); sky = mix(sky, night, smoothstep(0.0,0.3,vUv.y)*0.85);
+    float ridge = 0.25 + 0.18*n(vec2(t*6.0, 1.0)) + 0.08*n(vec2(t*20.0, 3.0));
+    float cliff = smoothstep(ridge, ridge-0.01, vUv.y);
+    vec3 col = mix(sky, vec3(0.04,0.05,0.07), cliff);
+    float lights = step(0.992, h(floor(vUv*vec2(320.0,110.0)))) * cliff * step(0.05, vUv.y);
+    col += vec3(1.0,0.7,0.4) * lights * 1.4;
+    float stars = step(0.997, h(floor(vUv*vec2(480.0,160.0)))) * (1.0-cliff) * smoothstep(0.4,0.9,vUv.y);
+    col += stars * 1.2;
+    gl_FragColor = vec4(col * 1.3, 1.0); }`;
+const WINDOW_VERT = /* glsl */ `varying vec3 vWorld; void main(){ vWorld = (modelMatrix * vec4(position,1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
+
 export class Interior {
   readonly scene = new THREE.Scene();
   readonly figures = new Map<string, Figure>();
@@ -138,12 +165,72 @@ export class Interior {
   private onKeyUp = (e: KeyboardEvent) => { this.keys.delete(e.code); };
   private onMouse = (e: MouseEvent) => { if (document.pointerLockElement) { this.mouseDX += e.movementX; this.mouseDY += e.movementY; } };
   inputEnabled = true;
+  private bounds = { x: 10.4, z: 7.4 };
+  /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
+  baked = false;
 
   constructor() {
-    this.buildCantina();
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     document.addEventListener('mousemove', this.onMouse);
+  }
+
+  /** Loads the baked scene from Blender, or builds the procedural room when it is missing. */
+  async load(): Promise<void> {
+    const base = import.meta.env.BASE_URL;
+    try {
+      const [gltf, meta] = await Promise.all([
+        new GLTFLoader().loadAsync(`${base}scenes/cantina.glb`),
+        fetch(`${base}scenes/cantina.json`).then((r) => { if (!r.ok) throw new Error('no meta'); return r.json() as Promise<SceneMeta>; }),
+      ]);
+      this.installBaked(gltf.scene, meta);
+      this.baked = true;
+    } catch {
+      this.buildCantina();
+    }
+  }
+
+  private installBaked(root: THREE.Object3D, meta: SceneMeta): void {
+    root.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (mesh.name === 'Shell' || mesh.name === 'Furniture') {
+        // the lighting is baked into the texture: draw it unlit
+        const basic = new THREE.MeshBasicMaterial({ map: mat.map });
+        mesh.material = basic;
+        this.disposables.push(basic);
+      } else if (mat.name === 'Window') {
+        const win = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, vertexShader: WINDOW_VERT, fragmentShader: WINDOW_FRAG, side: THREE.DoubleSide });
+        mesh.material = win;
+        this.disposables.push(win);
+      } else {
+        // emissive props: lamps, strips, bottles, screens
+        mat.toneMapped = true;
+        mat.emissiveIntensity = Math.min(mat.emissiveIntensity, 3.0);
+        if (mat.emissiveIntensity <= 1) mat.emissiveIntensity = 1.6;
+      }
+    });
+    this.scene.add(root);
+    // lights for the characters only; the room itself is baked
+    const hemi = new THREE.HemisphereLight(0x8a7a6a, 0x1a1410, 1.2); this.scene.add(hemi);
+    for (const [x, z] of [[-6.5, -6.4], [0, 0], [6.5, 6.4], [-6.5, 6.4], [6.5, -6.4], [0, -6.4], [0, 6.4]]) {
+      const l = new THREE.PointLight(0xffb070, 10, 12, 1.6); l.position.set(x, 4.8, z); this.scene.add(l);
+    }
+    for (const c of meta.colliders) this.colliders.push({ min: new THREE.Vector3(c.min[0], c.min[1], c.min[2]), max: new THREE.Vector3(c.max[0], c.max[1], c.max[2]) });
+    this.bounds = meta.bounds;
+    this.playerPos.set(meta.spawn.pos[0], meta.spawn.pos[1], meta.spawn.pos[2]);
+    this.yaw = meta.spawn.yaw;
+    for (const f of meta.figures) this.placeAt(f.name, f.pos[0], f.pos[1], f.pos[2], f.yaw, f.seated);
+  }
+
+  private placeAt(name: string, x: number, y: number, z: number, yaw: number, seated: boolean): void {
+    const f = new Figure(name, PALETTES[name] ?? PALETTES.PATRON_A, seated);
+    f.root.position.set(x, y, z);
+    f.setBaseYaw(yaw);
+    this.scene.add(f.root);
+    this.figures.set(name, f);
+    this.colliders.push({ min: new THREE.Vector3(x - 0.5, 0, z - 0.5), max: new THREE.Vector3(x + 0.5, 2, z + 0.5) });
   }
 
   private grime(base: string, lines = false): THREE.CanvasTexture {
@@ -200,25 +287,7 @@ export class Interior {
     }
     // the window onto the twilight band
     const winGeo = new THREE.PlaneGeometry(W - 2, H - 1.2); this.disposables.push(winGeo);
-    const winMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
-      vertexShader: /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-      fragmentShader: /* glsl */ `
-        precision highp float; varying vec2 vUv; uniform float uTime;
-        float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
-        float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
-        void main(){
-          vec3 ice = vec3(0.35,0.55,0.8); vec3 band = vec3(0.95,0.55,0.25); vec3 night = vec3(0.02,0.03,0.08);
-          float t = vUv.x; vec3 sky = mix(ice, band, smoothstep(0.35,0.75,t)); sky = mix(sky, night, smoothstep(0.0,0.3,vUv.y)*0.85);
-          float ridge = 0.25 + 0.18*n(vec2(t*6.0, 1.0)) + 0.08*n(vec2(t*20.0, 3.0));
-          float cliff = smoothstep(ridge, ridge-0.01, vUv.y);
-          vec3 col = mix(sky, vec3(0.04,0.05,0.07), cliff);
-          float lights = step(0.992, h(floor(vUv*vec2(320.0,110.0)))) * cliff * step(0.05, vUv.y);
-          col += vec3(1.0,0.7,0.4) * lights * 1.4;
-          float stars = step(0.997, h(floor(vUv*vec2(480.0,160.0)))) * (1.0-cliff) * smoothstep(0.4,0.9,vUv.y);
-          col += stars * 1.2;
-          gl_FragColor = vec4(col * 1.3, 1.0); }`,
-    });
+    const winMat = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, vertexShader: WINDOW_VERT, fragmentShader: WINDOW_FRAG });
     this.disposables.push(winMat);
     const win = new THREE.Mesh(winGeo, winMat); win.position.set(0, H / 2 + 0.2, -D / 2 + 0.2); this.scene.add(win);
     const winGlow = new THREE.PointLight(0x80a0ff, 10, 18, 1.5); winGlow.position.set(0, 3, -D / 2 + 2); this.scene.add(winGlow);
@@ -312,8 +381,8 @@ export class Interior {
       if (move.lengthSq() > 0) {
         move.normalize().multiplyScalar(dt * (this.keys.has('ShiftLeft') ? 4.5 : 2.6));
         const next = this.playerPos.clone().add(move);
-        next.x = THREE.MathUtils.clamp(next.x, -10.4, 10.4);
-        next.z = THREE.MathUtils.clamp(next.z, -7.4, 7.4);
+        next.x = THREE.MathUtils.clamp(next.x, -this.bounds.x, this.bounds.x);
+        next.z = THREE.MathUtils.clamp(next.z, -this.bounds.z, this.bounds.z);
         for (const b of this.colliders) {
           if (next.x > b.min.x && next.x < b.max.x && next.z > b.min.z && next.z < b.max.z) {
             const dx = Math.min(next.x - b.min.x, b.max.x - next.x), dz = Math.min(next.z - b.min.z, b.max.z - next.z);
