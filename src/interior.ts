@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Avatar, AVATAR_FILES, type Actor } from './avatar';
 
 // Walkable interiors with stylised procedural characters. The first interior is
 // the cantina of Twilight City on Radole. Characters are built from primitives so
@@ -21,7 +22,7 @@ function std(color: number, rough = 0.8, metal = 0.0): THREE.MeshStandardMateria
 }
 
 /** A stylised human figure built from primitives, with idle, look-at, gesture and mouth animation. */
-export class Figure {
+export class Figure implements Actor {
   readonly root = new THREE.Group();
   readonly head: THREE.Group;
   private torso: THREE.Group;
@@ -84,6 +85,7 @@ export class Figure {
     }
   }
 
+  dispose(): void { for (const d of this.disposables) d.dispose(); }
   lookAt(target: THREE.Vector3 | null): void { this.lookTarget = target; }
   /** Turns the whole body toward a point (a seated figure turns on the stool). */
   face(target: THREE.Vector3 | null): void { this.faceTarget = target; }
@@ -149,7 +151,7 @@ const WINDOW_VERT = /* glsl */ `varying vec3 vWorld; void main(){ vWorld = (mode
 
 export class Interior {
   readonly scene = new THREE.Scene();
-  readonly figures = new Map<string, Figure>();
+  readonly figures = new Map<string, Actor>();
   readonly playerPos = new THREE.Vector3(0, 1.62, 5.5);
   yaw = Math.PI;
   pitch = 0;
@@ -185,6 +187,7 @@ export class Interior {
       ]);
       this.installBaked(gltf.scene, meta);
       this.baked = true;
+      await this.placeActors(meta.figures);
     } catch {
       this.buildCantina();
     }
@@ -221,16 +224,25 @@ export class Interior {
     this.bounds = meta.bounds;
     this.playerPos.set(meta.spawn.pos[0], meta.spawn.pos[1], meta.spawn.pos[2]);
     this.yaw = meta.spawn.yaw;
-    for (const f of meta.figures) this.placeAt(f.name, f.pos[0], f.pos[1], f.pos[2], f.yaw, f.seated);
   }
 
-  private placeAt(name: string, x: number, y: number, z: number, yaw: number, seated: boolean): void {
-    const f = new Figure(name, PALETTES[name] ?? PALETTES.PATRON_A, seated);
-    f.root.position.set(x, y, z);
-    f.setBaseYaw(yaw);
-    this.scene.add(f.root);
-    this.figures.set(name, f);
-    this.colliders.push({ min: new THREE.Vector3(x - 0.5, 0, z - 0.5), max: new THREE.Vector3(x + 0.5, 2, z + 0.5) });
+  /** Loads rigged avatars where a character file exists, with the procedural figure as the fallback. */
+  private async placeActors(figures: SceneMeta['figures']): Promise<void> {
+    const base = import.meta.env.BASE_URL;
+    await Promise.all(figures.map(async (f) => {
+      let actor: Actor | null = null;
+      const file = AVATAR_FILES[f.name];
+      if (file) {
+        try { actor = await Avatar.load(f.name, `${base}characters/${file}.glb`, f.seated); } catch { actor = null; }
+      }
+      if (!actor) actor = new Figure(f.name, PALETTES[f.name] ?? PALETTES.PATRON_A, f.seated);
+      const y = actor instanceof Avatar ? 0 : f.pos[1];
+      actor.root.position.set(f.pos[0], y, f.pos[2]);
+      actor.setBaseYaw(f.yaw);
+      this.scene.add(actor.root);
+      this.figures.set(f.name, actor);
+      this.colliders.push({ min: new THREE.Vector3(f.pos[0] - 0.5, 0, f.pos[2] - 0.5), max: new THREE.Vector3(f.pos[0] + 0.5, 2, f.pos[2] + 0.5) });
+    }));
   }
 
   private grime(base: string, lines = false): THREE.CanvasTexture {
@@ -416,7 +428,7 @@ export class Interior {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     document.removeEventListener('mousemove', this.onMouse);
-    for (const f of this.figures.values()) for (const d of f.disposables) d.dispose();
+    for (const f of this.figures.values()) f.dispose();
     for (const d of this.disposables) d.dispose();
   }
 }

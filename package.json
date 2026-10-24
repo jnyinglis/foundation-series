@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "voice": "tsx scripts/voice.ts",
     "portraits": "tsx scripts/portraits.ts",
+    "characters": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/characters.py --",
     "scene:cantina": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/cantina.py -- public/scenes",
     "connectivity": "tsx scripts/connectivity.ts"
   },

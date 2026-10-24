@@ -102,6 +102,30 @@ exports glTF. It also writes the collider boxes, spawn point and character
 placements that `src/interior.ts` reads. If the scene files are missing, the
 game falls back to the procedural room.
 
+## Characters
+
+Named characters are rigged humans built with MPFB, the MakeHuman plugin for
+Blender, from a script. Each character is a few lines in
+`blender/characters.py`: body sliders, skin, hair, eyebrows, clothes. The
+script bakes the body shape, adds one jaw shape key for lip sync, attaches the
+Mixamo-named skeleton, dresses the figure so hair and clothes get weights, drops
+the helper geometry, shrinks textures, and exports a 2 to 4 MB glTF per
+character to `public/characters`.
+
+```bash
+# once: install the MPFB extension and the CC0 asset packs
+/Applications/Blender.app/Contents/MacOS/Blender --command extension install mpfb --sync --enable
+# then unpack makehuman_system_assets, skins, hair, eyebrows, eyelashes, shirts, pants,
+# shoes, bodyparts and suits packs into Blender's MPFB user data folder
+npm run characters            # builds every character
+npm run characters -- corin   # one character
+```
+
+In the game, `src/avatar.ts` loads a character and animates it on its skeleton
+in code: relaxed arms, a seated pose on stools, breathing, head look-at,
+talking gestures, and a mouth driven by the voice clip level through the jaw
+shape key. The procedural figure remains the fallback when a file is missing.
+
 ## Portraits
 
 Each speaking character has a painted portrait beside the dialogue, generated
@@ -146,6 +170,7 @@ src/story/             story format, engine, and scripts
 src/dialogue.ts        dialogue panel, portraits and chapter cards
 src/city.ts            procedural Trantor flythrough
 src/interior.ts        walkable interiors and procedural characters
+src/avatar.ts          rigged MakeHuman characters animated in code
 blender/               headless Blender scene builders
 scripts/connectivity.ts  checks that every world is reachable by jump chains
 ```
