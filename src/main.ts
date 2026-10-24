@@ -305,6 +305,24 @@ renderPass.scene = system.scene;
 hud.setSystem(world);
 placeShip();
 
+// ---------------------------------------------------------------- sound prompt and debug readout
+const soundPrompt = document.getElementById('sound-prompt')!;
+soundPrompt.addEventListener('click', () => { audio.unlock(); });
+const debugEl = document.getElementById('debug')!;
+const debugOn = new URLSearchParams(location.search).has('debug');
+debugEl.style.display = debugOn ? 'block' : 'none';
+let debugTimer = 0;
+function updateDiagnostics(dt: number): void {
+  debugTimer += dt;
+  if (debugTimer < 0.5) return;
+  debugTimer = 0;
+  const running = audio.state === 'running';
+  soundPrompt.classList.toggle('show', started && audio.ready && !running);
+  if (debugOn) {
+    debugEl.textContent = `audio: ${audio.state} · clips: ${voice.hasClips ? 'yes' : 'no'} · voice: ${voice.enabled ? 'on' : 'off'} · last: ${voice.lastMode} · pr ${pixelRatio} · ${navigator.userAgent.slice(0, 60)}`;
+  }
+}
+
 // ---------------------------------------------------------------- loop
 const clock = new THREE.Clock();
 const tmpV = new THREE.Vector3();
@@ -399,6 +417,7 @@ function frame(): void {
   }
 
   if (started && !jumping) adaptQuality(dt);
+  updateDiagnostics(dt);
   saveTimer += dt;
   if (saveTimer > 5 && started) { saveTimer = 0; saveState(state); }
 

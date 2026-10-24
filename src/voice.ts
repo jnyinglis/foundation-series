@@ -11,6 +11,8 @@ export class VoicePlayer {
   private stopCurrent: (() => void) | null = null;
   private utterance: SpeechSynthesisUtterance | null = null;
   enabled = true;
+  /** What happened for the last line: clip, fallback, off, or an error message. */
+  lastMode = 'none';
 
   constructor(private audio: AudioEngine) {
     try { this.enabled = localStorage.getItem('foundation-voice') !== 'off'; } catch { /* ignore */ }
@@ -32,7 +34,7 @@ export class VoicePlayer {
   /** Starts speaking. Resolves with the clip length in seconds, or 0 when unknown. */
   async speak(who: string, text: string): Promise<number> {
     this.stop();
-    if (!this.enabled) return 0;
+    if (!this.enabled) { this.lastMode = 'off'; return 0; }
     await this.manifestLoaded;
     const id = voiceId(who, text);
     const cast = castFor(who);
@@ -45,14 +47,18 @@ export class VoicePlayer {
           this.buffers.set(id, buf);
         }
         this.stopCurrent = this.audio.playVoice(buf, cast.fx);
+        this.lastMode = `clip ${id} (${buf.duration.toFixed(1)}s, ctx ${this.audio.state})`;
         return buf.duration;
-      } catch { /* fall through to the browser voice */ }
+      } catch (e) { this.lastMode = `clip error: ${(e as Error).message}`; }
+    } else {
+      this.lastMode = this.manifest ? (this.audio.ready ? `no clip for ${id}` : 'audio not ready') : 'no manifest';
     }
     return this.speakFallback(who, text);
   }
 
   private speakFallback(who: string, text: string): number {
-    if (!('speechSynthesis' in window)) return 0;
+    if (!('speechSynthesis' in window)) { this.lastMode += ' / no speechSynthesis'; return 0; }
+    this.lastMode += ' / browser voice';
     const cast = castFor(who);
     const u = new SpeechSynthesisUtterance(text);
     const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'));

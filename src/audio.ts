@@ -7,12 +7,37 @@ export class AudioEngine {
   private master: GainNode | null = null;
   private voiceBus: GainNode | null = null;
 
+  private unmuteEl: HTMLAudioElement | null = null;
+
   get ready(): boolean { return !!this.ctx; }
+  get state(): string { return this.ctx ? this.ctx.state : 'none'; }
+
+  /** Call from any user gesture: resumes a suspended context and lifts the iOS silent switch for Web Audio. */
+  unlock(): void {
+    if (this.ctx && this.ctx.state !== 'running') void this.ctx.resume();
+    if (!this.unmuteEl) {
+      // A looping silent clip in an <audio> element moves iOS to the playback audio session,
+      // so Web Audio is no longer muted by the ringer switch.
+      const el = document.createElement('audio');
+      el.setAttribute('playsinline', '');
+      el.loop = true;
+      el.volume = 0.01;
+      el.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+      this.unmuteEl = el;
+    }
+    void this.unmuteEl.play().catch(() => undefined);
+  }
 
   init(): void {
     if (this.ctx) return;
     const ctx = new AudioContext();
     this.ctx = ctx;
+    void ctx.resume();
+    const onGesture = () => this.unlock();
+    window.addEventListener('pointerdown', onGesture, { passive: true });
+    window.addEventListener('touchend', onGesture, { passive: true });
+    window.addEventListener('keydown', onGesture);
+    this.unlock();
     this.master = ctx.createGain();
     this.master.gain.value = 0.6;
     this.master.connect(ctx.destination);

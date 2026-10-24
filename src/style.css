@@ -152,3 +152,7 @@ body.map-open .bottom-left, body.map-open .top-right, body.map-open .reticle, bo
 .map-label.locked { color: rgba(80,90,110,0.5); cursor: default; }
 .map-label.minor { font-size: 9px; }
 @media (max-width: 720px) { .intro-cards { flex-direction: column; align-items: center; } .journal { width: calc(100% - 32px); } }
+
+.sound-prompt { position: fixed; left: 50%; top: 28%; transform: translateX(-50%); padding: 12px 18px; background: rgba(255,193,77,0.12); border: 1px solid var(--amber); color: var(--amber); font: inherit; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; display: none; z-index: 7; }
+.sound-prompt.show { display: block; animation: pulse 1s infinite alternate; }
+.debug { position: fixed; left: 0; right: 0; bottom: 0; padding: 6px 10px; background: rgba(0,0,0,0.75); color: #9fe; font: 11px var(--mono); z-index: 8; white-space: pre-wrap; }
