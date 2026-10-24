@@ -13,11 +13,13 @@
       <div id="sys-name" class="sys-name">TERMINUS</div>
       <div id="sys-region" class="sys-region"></div>
       <div id="status" class="status"></div>
+      <div id="objective" class="objective" style="display:none"></div>
     </div>
     <div class="corner top-right">
       <div class="row"><span class="k">DATE</span><span id="date" class="v"></span></div>
       <div class="row"><span class="k">CREDITS</span><span id="credits" class="v"></span></div>
       <div class="row"><span class="k">FUEL</span><span class="bar"><span id="fuel-fill" class="fill fuel"></span></span><span id="fuel-text" class="v small"></span></div>
+      <div id="strain-row" class="row" style="display:none"><span class="k">STRAIN</span><span class="bar"><span id="strain-fill" class="fill strain"></span></span><span class="v small">positronic</span></div>
     </div>
     <div class="corner bottom-left">
       <div class="row"><span class="k">THR</span><span class="bar"><span id="throttle-fill" class="fill"></span></span></div>
@@ -40,12 +42,25 @@
         <tr><td>M</td><td>galaxy map</td></tr>
         <tr><td>J</td><td>jump to selected system</td></tr>
         <tr><td>I</td><td>world information</td></tr>
+        <tr><td>K</td><td>journal (story)</td></tr>
+        <tr><td>Space / 1-3</td><td>advance dialogue / choose</td></tr>
+        <tr><td>V</td><td>voice on / off</td></tr>
         <tr><td>H</td><td>this panel</td></tr>
         <tr><td>Esc</td><td>release the mouse / close</td></tr>
       </table>
       <p>Fly to within orbit range of a planet to refuel.</p>
     </div>
   </div>
+
+  <div id="journal" class="journal"><div class="journal-head">JOURNAL · THE KESTREL</div><div id="journal-body"></div><div class="info-foot">K or Esc to close</div></div>
+
+  <div id="dialogue" class="dialogue">
+    <div id="dlg-speaker" class="dlg-speaker"></div>
+    <div id="dlg-text" class="dlg-text"></div>
+    <div id="dlg-choices" class="dlg-choices"></div>
+    <div id="dlg-hint" class="dlg-hint">SPACE ▸</div>
+  </div>
+  <div id="chapter" class="chapter"></div>
 
   <div id="map-labels"></div>
   <div id="map-panel" class="map-panel">
@@ -66,8 +81,17 @@
       <div class="intro-kicker">AN ELITE-STYLE VOYAGE THROUGH</div>
       <h1>FOUNDATION</h1>
       <div class="intro-sub">THE WORLDS OF ISAAC ASIMOV</div>
-      <div class="intro-quote">"The fall of Empire, gentlemen, is a massive thing, however, and not easily fought."</div>
-      <div class="intro-cta">CLICK OR PRESS ANY KEY TO BEGIN</div>
+      <div class="intro-cards">
+        <button id="btn-explore" class="card">
+          <div class="card-title">EXPLORE</div>
+          <div class="card-sub">Free flight. Every world. No rules.</div>
+        </button>
+        <button id="btn-story" class="card">
+          <div class="card-title">STORY</div>
+          <div class="card-sub">The Second Mind.</div>
+          <span id="btn-story-new" class="card-new" style="display:none">start over</span>
+        </button>
+      </div>
       <div class="intro-foot">A non-commercial fan project. Headphones recommended.</div>
     </div>
   </div>

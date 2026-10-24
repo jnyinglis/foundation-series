@@ -26,6 +26,11 @@ export class Hud {
   private mapHint = el('map-hint');
   private jumpBtn = el<HTMLButtonElement>('jump-btn');
   private help = el('help');
+  private objective = el('objective');
+  private strainRow = el('strain-row');
+  private strainFill = el<HTMLDivElement>('strain-fill');
+  private journal = el('journal');
+  private journalBody = el('journal-body');
   private msgTimer = 0;
 
   constructor() {}
@@ -90,28 +95,53 @@ export class Hud {
     document.body.classList.toggle('map-open', show);
   }
 
-  setMapTarget(current: World, target: World | null, dist: number, inRange: boolean, fuel: number): void {
+  setMapTarget(current: World, target: World | null, route: World[], hopDist: number, fuel: number): void {
     if (!target) {
       this.mapTarget.innerHTML = `<div class="info-kicker">Current system</div><h2>${current.name}</h2><p>${current.region}</p>`;
-      this.mapHint.textContent = 'Click a star to select a destination. Drag to orbit. Scroll to zoom.';
+      this.mapHint.textContent = 'Click a star to select a destination. Drag to orbit. Scroll to zoom. Far stars route through several jumps.';
       this.jumpBtn.disabled = true;
       this.jumpBtn.textContent = 'SELECT A DESTINATION';
       return;
     }
-    const fuelOk = fuel >= dist;
+    const reachable = route.length > 0;
+    const fuelOk = fuel >= hopDist;
+    const next = route[0];
+    const total = route.reduce((acc, w, i) => acc + (i === 0 ? hopDist : 0) + (i > 0 ? Math.hypot(w.pos[0] - route[i - 1].pos[0], w.pos[1] - route[i - 1].pos[1], w.pos[2] - route[i - 1].pos[2]) : 0), 0);
     this.mapTarget.innerHTML = `
       <div class="info-kicker">${target.region}</div>
       <h2>${target.name}</h2>
       <div class="info-grid">
-        <span>Distance</span><span>${(dist * 500).toFixed(0)} ly</span>
-        <span>Fuel</span><span>${dist.toFixed(1)} units</span>
+        <span>Route</span><span>${reachable ? `${route.length} jump${route.length > 1 ? 's' : ''} · ${(total * 500).toFixed(0)} ly` : 'no route'}</span>
+        <span>Next hop</span><span>${reachable ? `${next.name} · ${hopDist.toFixed(1)} fuel` : '—'}</span>
         <span>Star</span><span>${target.starName}</span>
       </div>
       <p>${target.lore}</p>`;
-    this.jumpBtn.disabled = !(inRange && fuelOk);
-    this.jumpBtn.textContent = !inRange ? 'OUT OF JUMP RANGE' : !fuelOk ? 'NOT ENOUGH FUEL' : `JUMP TO ${target.name.toUpperCase()}  [J]`;
-    this.mapHint.textContent = inRange ? 'Press J or click JUMP to enter hyperspace.' : 'Plot a chain of shorter jumps. The ring shows your range.';
+    this.jumpBtn.disabled = !(reachable && fuelOk);
+    this.jumpBtn.textContent = !reachable ? 'NO ROUTE' : !fuelOk ? 'NOT ENOUGH FUEL' : route.length > 1 ? `JUMP TO ${next.name.toUpperCase()} · 1 OF ${route.length}  [J]` : `JUMP TO ${target.name.toUpperCase()}  [J]`;
+    this.mapHint.textContent = reachable ? 'Press J or click JUMP to enter hyperspace. The route continues after each arrival.' : 'No charted route reaches this star.';
   }
+
+  setObjective(text: string): void {
+    this.objective.textContent = text;
+    this.objective.style.display = text ? 'block' : 'none';
+  }
+
+  setStrain(value: number, show: boolean): void {
+    this.strainRow.style.display = show ? 'flex' : 'none';
+    this.strainFill.style.width = `${Math.min(100, value * 20)}%`;
+    this.strainFill.classList.toggle('hot', value >= 3);
+  }
+
+  showJournal(entries: string[], crew: string[], objective: string): void {
+    const items = entries.length ? entries.map((e) => `<li>${e}</li>`).reverse().join('') : '<li class="dim">No entries yet.</li>';
+    this.journalBody.innerHTML = `
+      <div class="info-kicker">Objective</div><p>${objective || '—'}</p>
+      <div class="info-kicker">Crew of the Kestrel</div><p>R. Taren Vesk (pilot)${crew.map((c) => `, ${c}`).join('')}</p>
+      <div class="info-kicker">Log</div><ul>${items}</ul>`;
+    this.journal.classList.add('show');
+  }
+  hideJournal(): void { this.journal.classList.remove('show'); }
+  get journalOpen(): boolean { return this.journal.classList.contains('show'); }
 
   onJump(cb: () => void): void { this.jumpBtn.addEventListener('click', cb); }
 

@@ -1,0 +1,65 @@
+// Shared between the voice generation script and the game: which voice speaks
+// each character, and a stable id for every line so clips can be cached.
+
+export type VoiceFx = 'plain' | 'robot' | 'radio';
+
+export interface CastEntry {
+  /** OpenAI voice name. */
+  voice: string;
+  /** Tone instructions for gpt-4o-mini-tts. */
+  instructions: string;
+  /** In-browser processing applied on playback. */
+  fx: VoiceFx;
+  /** Browser fallback: preferred voice names, pitch and rate. */
+  fallback: { names: string[]; pitch: number; rate: number };
+}
+
+export const NARRATOR = '';
+
+export const CAST: Record<string, CastEntry> = {
+  [NARRATOR]: {
+    voice: 'ash',
+    instructions: 'A calm, measured narrator for a science fiction novel. Slow pace, quiet gravity, no drama. Let sentences land.',
+    fx: 'plain',
+    fallback: { names: ['Daniel', 'Oliver', 'Google UK English Male'], pitch: 0.95, rate: 0.92 },
+  },
+  TAREN: {
+    voice: 'alloy',
+    instructions: 'A thoughtful android speaking to itself. Calm, precise, even, gentle. Never raises the voice. Slight detachment, as if observing its own feelings from a short distance.',
+    fx: 'robot',
+    fallback: { names: ['Alex', 'Fred', 'Google US English'], pitch: 0.9, rate: 0.95 },
+  },
+  'ILEN SARVO': {
+    voice: 'coral',
+    instructions: 'A guarded, intelligent archivist in her thirties. Tired, controlled, with quiet urgency underneath. Dry and exact.',
+    fx: 'plain',
+    fallback: { names: ['Samantha', 'Karen', 'Moira', 'Google UK English Female'], pitch: 1.0, rate: 1.0 },
+  },
+  'CORIN PELLIS': {
+    voice: 'sage',
+    instructions: 'A brisk, confident trader pilot. Dry humour, a little amused, fast and sure. Warm underneath.',
+    fx: 'plain',
+    fallback: { names: ['Tessa', 'Fiona', 'Victoria', 'Google UK English Female'], pitch: 1.05, rate: 1.08 },
+  },
+  COMMS: {
+    voice: 'onyx',
+    instructions: 'A flat, clipped port-authority radio operator. Bored, procedural, no emotion. Short pauses between clauses.',
+    fx: 'radio',
+    fallback: { names: ['Daniel', 'Alex'], pitch: 0.85, rate: 1.1 },
+  },
+};
+
+export function castFor(who: string): CastEntry {
+  return CAST[who] ?? CAST[NARRATOR];
+}
+
+/** FNV-1a hash of the speaker and text, as 8 hex characters. */
+export function voiceId(who: string, text: string): string {
+  const s = `${who}|${text}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}

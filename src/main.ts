@@ -12,24 +12,48 @@ import { GalaxyMap } from './galaxy';
 import { Hud } from './hud';
 import { AudioEngine } from './audio';
 import { JumpShader } from './shaders/jump';
+import { Dialogue } from './dialogue';
+import { VoicePlayer } from './voice';
+import { StoryEngine } from './story/engine';
+import { newStoryState, type StoryState } from './story/types';
+import { SECOND_MIND } from './story/second-mind';
 
-interface SaveState { worldId: string; fuel: number; credits: number; day: number; visited: string[] }
+type Mode = 'explore' | 'story';
 
-const SAVE_KEY = 'foundation-save-v1';
-function loadState(): SaveState {
+interface SaveState {
+  mode: Mode;
+  worldId: string;
+  fuel: number;
+  credits: number;
+  day: number;
+  baseYear: number;
+  visited: string[];
+  story?: StoryState;
+}
+
+const SAVE_KEYS: Record<Mode, string> = { explore: 'foundation-save-explore-v1', story: 'foundation-save-story-v1' };
+
+function freshState(mode: Mode): SaveState {
+  if (mode === 'story') {
+    return { mode, worldId: SECOND_MIND.startWorld, fuel: FUEL_CAPACITY, credits: SECOND_MIND.startCredits, day: 0, baseYear: SECOND_MIND.baseYear, visited: [SECOND_MIND.startWorld], story: newStoryState(SECOND_MIND) };
+  }
+  return { mode, worldId: START_WORLD_ID, fuel: FUEL_CAPACITY, credits: 1200, day: 0, baseYear: 50, visited: [START_WORLD_ID] };
+}
+function loadState(mode: Mode): SaveState | null {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(SAVE_KEYS[mode]);
     if (raw) {
       const s = JSON.parse(raw) as SaveState;
       if (WORLDS.some((w) => w.id === s.worldId)) return s;
     }
   } catch { /* ignore */ }
-  return { worldId: START_WORLD_ID, fuel: FUEL_CAPACITY, credits: 1200, day: 0, visited: [START_WORLD_ID] };
+  return null;
 }
 function saveState(s: SaveState): void {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try { localStorage.setItem(SAVE_KEYS[s.mode], JSON.stringify(s)); } catch { /* ignore */ }
 }
 
+// ---------------------------------------------------------------- renderer
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 const MAX_PR = Math.min(window.devicePixelRatio, 1.5);
@@ -50,14 +74,19 @@ composer.addPass(bloom);
 composer.addPass(jumpPass);
 composer.addPass(output);
 
-const state = loadState();
+// ---------------------------------------------------------------- game state
+let state: SaveState = freshState('explore');
 let world: World = worldById(state.worldId);
 let system = new StarSystem(world, renderer);
 const ship = new Ship(canvas);
 ship.enabled = false;
 const hud = new Hud();
 const audio = new AudioEngine();
+const dialogue = new Dialogue();
+const voice = new VoicePlayer(audio);
+dialogue.voice = voice;
 const map = new GalaxyMap(canvas, document.getElementById('map-labels')!, world);
+let story: StoryEngine | null = null;
 
 let mapOpen = false;
 let jumping = false;
@@ -66,9 +95,9 @@ const JUMP_SECONDS = 4.2;
 let jumpTarget: World | null = null;
 let started = false;
 let orbiting = false;
+let storyLock = false;
 
 function placeShip(extra = 0): void {
-  // Start on the day side, looking at the planet with the sun off to one side.
   const side = new THREE.Vector3().crossVectors(system.sunDir, new THREE.Vector3(0, 1, 0)).normalize();
   const start = system.sunDir.clone().multiplyScalar(0.75).add(side.multiplyScalar(0.65)).normalize().multiplyScalar(system.planetRadius * 5.5 + extra);
   start.y += system.planetRadius * 0.6;
@@ -90,30 +119,35 @@ function enterSystem(w: World, extra = 0): void {
 }
 
 function dateText(): string {
-  const year = 50 + Math.floor(state.day / 365);
+  const year = state.baseYear + Math.floor(state.day / 365);
   const day = (state.day % 365) + 1;
   return `F.E. ${year} · Day ${day}`;
 }
 
+function shipMayFly(): boolean {
+  return started && !mapOpen && !jumping && !storyLock && !dialogue.open;
+}
+
 function openMap(): void {
-  if (jumping) return;
+  if (jumping || storyLock) return;
   mapOpen = true;
   ship.enabled = false;
   ship.releasePointer();
   hud.hideInfo();
   hud.hideHelp();
+  hud.hideJournal();
   map.open();
   renderPass.scene = map.scene;
   renderPass.camera = map.camera;
   bloom.strength = 1.4;
   hud.showMap(true);
-  hud.setMapTarget(world, null, 0, false, state.fuel);
+  refreshMapTarget(map.selected);
   audio.blip(660);
 }
 
 function closeMap(): void {
   mapOpen = false;
-  ship.enabled = true;
+  ship.enabled = shipMayFly();
   map.close();
   renderPass.scene = system.scene;
   renderPass.camera = camera;
@@ -122,12 +156,24 @@ function closeMap(): void {
   audio.blip(440);
 }
 
+function refreshMapTarget(w: World | null): void {
+  const hop = map.nextHop();
+  hud.setMapTarget(world, w, map.route, hop ? distance(world, hop) : 0, state.fuel);
+}
+
 function beginJump(): void {
-  const target = map.selected;
-  if (!target || !map.inRange(target) || jumping) return;
-  const d = distance(world, target);
+  const hop = map.nextHop();
+  if (!hop || jumping || storyLock) return;
+  const d = distance(world, hop);
   if (state.fuel < d) { hud.showMessage('Not enough fuel for this jump.'); return; }
-  jumpTarget = target;
+  if (mapOpen) closeMap();
+  // a story may have something to say before the jump
+  if (story) { storyLock = true; story.fire({ type: 'depart', world: world.id }).then(() => { storyLock = false; executeJump(hop, d); }); }
+  else executeJump(hop, d);
+}
+
+function executeJump(hop: World, d: number): void {
+  jumpTarget = hop;
   state.fuel -= d;
   state.day += Math.round(d * 3) + 1;
   if (mapOpen) closeMap();
@@ -143,18 +189,21 @@ function beginJump(): void {
 
 map.onSelect = (w) => {
   if (w) audio.blip(990);
-  hud.setMapTarget(world, w, w ? distance(world, w) : 0, w ? map.inRange(w) : false, state.fuel);
+  refreshMapTarget(w);
 };
 hud.onJump(beginJump);
 
 window.addEventListener('keydown', (e) => {
   if (!started) return;
+  if (dialogue.open && e.code !== 'KeyV') return;
   switch (e.code) {
     case 'KeyM': mapOpen ? closeMap() : openMap(); break;
-    case 'Escape': if (mapOpen) closeMap(); hud.hideInfo(); hud.hideHelp(); break;
+    case 'Escape': if (mapOpen) closeMap(); hud.hideInfo(); hud.hideHelp(); hud.hideJournal(); break;
     case 'KeyJ': if (map.selected) beginJump(); break;
     case 'KeyI': if (!mapOpen) { hud.infoOpen ? hud.hideInfo() : hud.showInfo(world); } break;
     case 'KeyH': hud.toggleHelp(); break;
+    case 'KeyV': hud.showMessage(voice.toggle() ? 'Voice on.' : 'Voice off.', 2000); break;
+    case 'KeyK': if (state.story) { hud.journalOpen ? hud.hideJournal() : hud.showJournal(state.story.journal, state.story.crew, state.story.objective); } break;
   }
 });
 
@@ -173,30 +222,94 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 
-// Intro
+// ---------------------------------------------------------------- story wiring
+function attachStory(): void {
+  if (!state.story) return;
+  const st = state.story;
+  story = new StoryEngine(SECOND_MIND, st, {
+    say: (who, text) => dialogue.say(who, text),
+    choose: (options) => dialogue.choose(options),
+    chapter: (title, sub) => { dialogue.hide(); return dialogue.chapter(title, sub); },
+    message: (text) => hud.showMessage(text, 4000),
+    objective: (text) => hud.setObjective(text),
+    journal: () => hud.showMessage('Journal updated. Press K.', 2500),
+    strain: (v) => { hud.setStrain(v, true); if (v >= 3) hud.showMessage('Positronic strain is high.', 4000); },
+    credits: (d) => { state.credits = Math.max(0, state.credits + d); },
+    fuel: (d) => { state.fuel = Math.max(0, Math.min(FUEL_CAPACITY, state.fuel + d)); },
+    unlock: (worlds) => { map.allowed = new Set(worlds); map.setCurrent(world); },
+    crew: (name) => hud.showMessage(`${name} has joined the crew.`, 3500),
+    lock: (locked) => {
+      storyLock = locked;
+      if (locked) { ship.releasePointer(); ship.enabled = false; hud.hideInfo(); if (mapOpen) closeMap(); }
+      else { dialogue.hide(); ship.enabled = shipMayFly(); }
+    },
+    end: (text) => hud.showMessage(text, 8000),
+    save: () => saveState(state),
+  });
+  map.allowed = new Set(st.unlocked);
+  map.setCurrent(world);
+  hud.setObjective(st.objective);
+  hud.setStrain(st.strain, true);
+}
+
+// ---------------------------------------------------------------- intro / mode select
 const intro = document.getElementById('intro')!;
-function start(): void {
+const btnExplore = document.getElementById('btn-explore')!;
+const btnStory = document.getElementById('btn-story')!;
+const btnStoryNew = document.getElementById('btn-story-new')!;
+
+function describeSaves(): void {
+  const ex = loadState('explore');
+  const st = loadState('story');
+  btnExplore.querySelector('.card-sub')!.textContent = ex ? `Continue at ${worldById(ex.worldId).name}` : 'Free flight. Every world. No rules.';
+  btnStory.querySelector('.card-sub')!.textContent = st ? `Continue at ${worldById(st.worldId).name}` : 'The Second Mind. A robot, an archivist, and a world that was erased.';
+  btnStoryNew.style.display = st ? 'inline-block' : 'none';
+}
+describeSaves();
+
+function start(mode: Mode, fresh = false): void {
   if (started) return;
   started = true;
   audio.init();
-  ship.enabled = true;
-  ship.throttle = 0.2;
+  const loaded = fresh ? null : loadState(mode);
+  state = loaded ?? freshState(mode);
+  world = worldById(state.worldId);
+  system.dispose();
+  system = new StarSystem(world, renderer);
+  renderPass.scene = system.scene;
+  resize();
+  placeShip();
+  hud.setSystem(world);
+  map.allowed = null;
+  map.setCurrent(world);
+  hud.setStrain(0, false);
+  hud.setObjective('');
+  if (mode === 'story') attachStory();
   intro.classList.add('hide');
   setTimeout(() => (intro.style.display = 'none'), 1400);
-  hud.showMessage(`Welcome to ${world.name}. Press H for controls.`, 5000);
+  ship.enabled = true;
+  ship.throttle = 0.2;
+  if (mode === 'story') {
+    void story!.fire({ type: 'start' });
+    // replay a pending arrival scene after a reload
+    if (loaded) void story!.fire({ type: 'arrive', world: world.id });
+  } else {
+    hud.showMessage(`Welcome to ${world.name}. Press H for controls.`, 5000);
+  }
 }
-intro.addEventListener('click', start);
-window.addEventListener('keydown', (e) => { if (!started && e.code !== 'Escape') start(); }, { once: false });
+btnExplore.addEventListener('click', () => start('explore'));
+btnStory.addEventListener('click', () => start('story'));
+btnStoryNew.addEventListener('click', (e) => { e.stopPropagation(); start('story', true); });
 
 renderPass.scene = system.scene;
 hud.setSystem(world);
 placeShip();
 
+// ---------------------------------------------------------------- loop
 const clock = new THREE.Clock();
 const tmpV = new THREE.Vector3();
 let timeAcc = 0;
 let saveTimer = 0;
-// Adaptive resolution: drop the pixel ratio when the frame rate falls, raise it when it recovers.
 let fpsAcc = 0, fpsFrames = 0;
 function adaptQuality(dt: number): void {
   fpsAcc += dt; fpsFrames++;
@@ -226,20 +339,21 @@ function frame(): void {
     if (jumpT >= 1) {
       jumping = false;
       jumpPass.enabled = false;
-      ship.enabled = true;
       ship.throttle = 0.3;
+      ship.enabled = shipMayFly();
       hud.showMessage(`Arrived at ${world.name}.`, 3500);
+      story?.fire({ type: 'arrive', world: world.id });
     }
   }
 
   if (mapOpen) {
     map.update(w, h);
   } else {
+    ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);
     camera.position.copy(ship.position);
     camera.quaternion.copy(ship.quaternion);
     system.update(dt, timeAcc, camera);
-    // gentle boost shake
     if (ship.boost && ship.speed > 1000) {
       const s = 0.4;
       camera.position.x += (Math.random() - 0.5) * s;
@@ -247,13 +361,12 @@ function frame(): void {
     }
     camera.updateMatrixWorld();
 
-    // target marker on the planet
     tmpV.set(0, 0, 0).project(camera);
     const behind = tmpV.z > 1;
     let sx = ((tmpV.x + 1) / 2) * w;
     let sy = ((1 - tmpV.y) / 2) * h;
     const margin = 40;
-    let offscreen = behind || sx < margin || sx > w - margin || sy < margin || sy > h - margin;
+    const offscreen = behind || sx < margin || sx > w - margin || sy < margin || sy > h - margin;
     let angle = 0;
     if (offscreen) {
       let dx = tmpV.x, dy = -tmpV.y;
@@ -276,17 +389,18 @@ function frame(): void {
       state.fuel = FUEL_CAPACITY;
       hud.showMessage(refuel > 0.5 ? `Orbit established. Refuelled at ${world.name}.` : `Orbit established over ${world.name}.`, 3500);
       audio.blip(1200);
-      if (!hud.infoOpen) hud.showInfo(world);
+      if (!hud.infoOpen && !story) hud.showInfo(world);
       saveState(state);
+      story?.fire({ type: 'orbit', world: world.id });
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    if (!jumping) hud.setStatus(orbiting ? `IN ORBIT · ${world.name.toUpperCase()}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
+    if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 
   if (started && !jumping) adaptQuality(dt);
   saveTimer += dt;
-  if (saveTimer > 5) { saveTimer = 0; saveState(state); }
+  if (saveTimer > 5 && started) { saveTimer = 0; saveState(state); }
 
   composer.render();
 }
@@ -294,7 +408,8 @@ frame();
 
 // Debug handle for profiling in the browser console.
 (window as unknown as { __fdn: unknown }).__fdn = {
-  renderer, composer, bloom, jumpPass, camera, ship,
+  renderer, composer, bloom, jumpPass, camera, ship, voice,
   get system() { return system; },
   get state() { return state; },
+  get story() { return story; },
 };

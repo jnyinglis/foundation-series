@@ -21,6 +21,8 @@ export interface World {
   radius: number;
   hasRings?: boolean;
   moons?: number;
+  /** An unnamed catalogue star with no lore. */
+  minor?: boolean;
 }
 
 function polar(r: number, deg: number, y = 0): [number, number, number] {
@@ -227,10 +229,55 @@ export const WORLDS: World[] = [
     radius: 255, moons: 1,
     lore: 'The forgotten world of origin. Its crust is radioactive and its records are erased. On its great Moon, R. Daneel Olivaw waits.',
   },
+  {
+    id: 'horleggor', name: 'Horleggor', region: 'Imperial Frontier', type: 'terrestrial', seed: 151,
+    pos: polar(42, 2, 0.6), population: '900,000,000', starColor: '#ffe8cf', starName: 'Horleggor',
+    radius: 270,
+    lore: 'A frontier world of the dying Empire. Bel Riose fought the Foundation fleet here and won a victory that psychohistory had already made meaningless.',
+  },
+  {
+    id: 'arcturus', name: 'Arcturus', region: 'Imperial Frontier', type: 'desert', seed: 157,
+    pos: polar(33, 350, -0.5), population: '3,000,000,000', starColor: '#ffd2a0', starName: 'Arcturus',
+    radius: 290,
+    lore: 'Capital of the Arcturus Sector, once a jewel of the Empire. Its viceroys now pay tribute to whoever holds the nearest fleet.',
+  },
+  {
+    id: 'cinna', name: 'Cinna', region: 'Imperial Provinces', type: 'terrestrial', seed: 163,
+    pos: polar(20, 340, 0.8), population: '2,000,000,000', starColor: '#fff1dd', starName: 'Cinna',
+    radius: 280,
+    lore: 'A quiet Imperial world. Dors Venabili, companion of Hari Seldon, claimed it as her home.',
+  },
+  {
+    id: 'iwernia', name: 'Iwernia', region: 'Galactic Core', type: 'lush', seed: 167,
+    pos: polar(10, 355, -0.3), population: '1,500,000,000', starColor: '#fff0d8', starName: 'Iwernia',
+    radius: 275,
+    lore: 'One of the agricultural worlds that fed Trantor. When the capital fell, Iwernia fed itself and forgot.',
+  },
+  // Unnamed catalogue stars that link the charted regions.
+  {
+    id: 'gc2201', name: 'GC 2201', region: 'Uncharted', type: 'barren', seed: 201,
+    pos: [-10, 0.3, 7], population: 'None', starColor: '#ffd9b8', starName: 'GC 2201', radius: 200, minor: true,
+    lore: 'A catalogue star with no name and no record. A fuel stop on the long road.',
+  },
+  {
+    id: 'gc3310', name: 'GC 3310', region: 'Uncharted', type: 'ice', seed: 203,
+    pos: [-27, -0.5, -3], population: 'None', starColor: '#dfe8ff', starName: 'GC 3310', radius: 210, minor: true,
+    lore: 'A dim star and a frozen rock. Nobody stops here for long.',
+  },
+  {
+    id: 'gc1187', name: 'GC 1187', region: 'Uncharted', type: 'barren', seed: 207,
+    pos: [6, 0.6, 31], population: 'None', starColor: '#ffe3c2', starName: 'GC 1187', radius: 190, minor: true,
+    lore: 'A catalogue star between Kalgan and the Imperial provinces. Smugglers know it well.',
+  },
+  {
+    id: 'gc1904', name: 'GC 1904', region: 'Uncharted', type: 'desert', seed: 211,
+    pos: [-12, -0.4, 21], population: 'None', starColor: '#ffd6a8', starName: 'GC 1904', radius: 220, minor: true,
+    lore: 'A red star with one dry world. The charts give it a number and nothing else.',
+  },
 ];
 
 export const START_WORLD_ID = 'terminus';
-export const JUMP_RANGE = 12;
+export const JUMP_RANGE = 14;
 export const FUEL_CAPACITY = 60;
 
 export function worldById(id: string): World {

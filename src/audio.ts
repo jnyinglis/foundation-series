@@ -1,8 +1,11 @@
+import type { VoiceFx } from './story/voice';
+
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private engineGain: GainNode | null = null;
   private engineFilter: BiquadFilterNode | null = null;
   private master: GainNode | null = null;
+  private voiceBus: GainNode | null = null;
 
   get ready(): boolean { return !!this.ctx; }
 
@@ -13,6 +16,9 @@ export class AudioEngine {
     this.master = ctx.createGain();
     this.master.gain.value = 0.6;
     this.master.connect(ctx.destination);
+    this.voiceBus = ctx.createGain();
+    this.voiceBus.gain.value = 1.0;
+    this.voiceBus.connect(ctx.destination);
 
     // deep drone
     const droneGain = ctx.createGain();
@@ -99,6 +105,66 @@ export class AudioEngine {
     o2.connect(g2).connect(this.master);
     o2.start(now);
     o2.stop(now + duration + 1.5);
+  }
+
+  decode(data: ArrayBuffer): Promise<AudioBuffer> {
+    if (!this.ctx) throw new Error('audio not ready');
+    return this.ctx.decodeAudioData(data);
+  }
+
+  /** Plays a voice clip through a character effect chain. Returns a stop function. */
+  playVoice(buffer: AudioBuffer, fx: VoiceFx): () => void {
+    if (!this.ctx || !this.voiceBus) return () => undefined;
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const out = ctx.createGain();
+    out.gain.value = 1.0;
+    out.connect(this.voiceBus);
+    const extras: AudioScheduledSourceNode[] = [];
+    if (fx === 'robot') {
+      // subtle chorus and a narrowed band: precise, not quite human
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 160;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
+      const dry = ctx.createGain(); dry.gain.value = 0.75;
+      const wet = ctx.createGain(); wet.gain.value = 0.45;
+      const delay = ctx.createDelay(0.05); delay.delayTime.value = 0.012;
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.8;
+      const lfoGain = ctx.createGain(); lfoGain.gain.value = 0.0025;
+      lfo.connect(lfoGain).connect(delay.delayTime);
+      lfo.start(); extras.push(lfo);
+      src.connect(hp).connect(lp);
+      lp.connect(dry).connect(out);
+      lp.connect(delay).connect(wet).connect(out);
+    } else if (fx === 'radio') {
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.9;
+      const shaper = ctx.createWaveShaper();
+      const curve = new Float32Array(256);
+      for (let i = 0; i < 256; i++) { const x = (i / 127.5) - 1; curve[i] = Math.tanh(x * 2.2) / Math.tanh(2.2); }
+      shaper.curve = curve;
+      const g = ctx.createGain(); g.gain.value = 0.9;
+      src.connect(bp).connect(shaper).connect(g).connect(out);
+      // static bed under the transmission
+      const len = ctx.sampleRate * 2;
+      const nb = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d = nb.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.35;
+      const noise = ctx.createBufferSource(); noise.buffer = nb; noise.loop = true;
+      const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 2200; nf.Q.value = 0.5;
+      const ng = ctx.createGain(); ng.gain.value = 0.05;
+      noise.connect(nf).connect(ng).connect(out);
+      noise.start(); extras.push(noise);
+    } else {
+      src.connect(out);
+    }
+    src.start();
+    const stopAll = () => {
+      try { src.stop(); } catch { /* already stopped */ }
+      for (const e of extras) { try { e.stop(); } catch { /* ignore */ } }
+      out.disconnect();
+    };
+    src.onended = () => { for (const e of extras) { try { e.stop(); } catch { /* ignore */ } } };
+    return stopAll;
   }
 
   blip(freq = 880): void {

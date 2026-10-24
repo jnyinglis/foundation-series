@@ -17,6 +17,21 @@ npm run build      # static site in dist/
 
 The `dist/` folder can be hosted on GitHub Pages or any static host.
 
+## Two experiences
+
+- **Explore.** Free flight. Every world is open. Fuel is the only limit.
+- **Story: The Second Mind.** You are R. Taren Vesk, a robot built in secret under
+  Giskard Reventlov's guidance and released into the Galaxy by R. Daneel Olivaw
+  with its origin memory blocked. An Encyclopedist named Ilen Sarvo has found the
+  one surviving index entry for a world called Earth. Someone has erased every
+  other copy for ten thousand years. Chapters unlock worlds as the story moves.
+  Chapters one and two are written. Chapter three, Siwenna, is next.
+
+Stories are data. See `src/story/types.ts` for the format and
+`src/story/second-mind.ts` for the script. A scene fires on a trigger (start,
+arrive, orbit, depart, flag) and runs steps: dialogue, choices, flags, objectives,
+journal entries, unlocked worlds, crew, chapter cards, strain, credits and fuel.
+
 ## Controls
 
 | Key | Action |
@@ -30,18 +45,23 @@ The `dist/` folder can be hosted on GitHub Pages or any static host.
 | M | Galaxy map |
 | J | Jump to the selected system |
 | I | World information |
+| K | Journal (story mode) |
+| Space, 1-3 | Advance dialogue, choose |
 | H | Controls panel |
 | Esc | Release the mouse / close panels |
 
 Fly close to a planet to enter orbit. Orbit refuels the ship.
-The jump range is limited, so long voyages need a chain of jumps.
+The jump range is limited. Select a far star and the chart plots a chain of
+jumps; each J takes the next hop.
 
 ## Worlds
 
-33 named systems from the books, placed on a plausible galactic map:
+37 named systems from the books, plus four unnamed catalogue stars that link
+the regions, placed on a plausible galactic map:
 
 - **Galactic Core:** Trantor, Helicon, Synnax, Neotrantor
 - **The Periphery and the Four Kingdoms:** Terminus, Anacreon, Smyrno, Konom, Daribow, Askone, Korell, Siwenna, Glyptal IV, Nishaya
+- **Imperial Frontier and Provinces:** Horleggor, Arcturus, Cinna, Iwernia
 - **Independent Traders:** Haven, Iss, Mnemon, Radole
 - **The Mule:** Kalgan, Tazenda, Rossem
 - **Imperial Provinces:** Santanni, Sark, Florina
@@ -49,6 +69,23 @@ The jump range is limited, so long voyages need a chain of jumps.
 
 Each world has a type (terrestrial, lush, ocean, desert, ice, barren, or metal for
 Trantor), a seed, a star, and a short lore entry. See `src/data/worlds.ts`.
+
+## Voice
+
+Dialogue lines are spoken. The game plays a generated clip per line when one
+exists, and falls back to the browser's own voices when it does not. Press V to
+turn voice off or on.
+
+To generate the clips with OpenAI text-to-speech:
+
+```bash
+cp .env.example .env     # put your OPENAI_API_KEY in .env
+npm run voice            # writes public/voice/<id>.mp3 and a manifest
+```
+
+Only new or changed lines are generated. The cast, tone instructions and the
+per-character audio processing (Taren's slight chorus, the comms radio filter)
+live in `src/story/voice.ts` and `src/audio.ts`. The key stays on your machine.
 
 ## Structure
 
@@ -62,14 +99,18 @@ src/hud.ts             HUD and panels
 src/audio.ts           procedural ambient sound (Web Audio)
 src/shaders/           GLSL: noise, planet, clouds, atmosphere, sun, skybox, hyperspace jump
 src/data/worlds.ts     the named worlds
+src/story/             story format, engine, and scripts
+src/dialogue.ts        dialogue panel and chapter cards
+scripts/connectivity.ts  checks that every world is reachable by jump chains
 ```
 
 Stack: Three.js, TypeScript, Vite. Save game is kept in `localStorage`.
 
 ## Roadmap
 
-1. **Core loop.** Docking, markets, cargo, missions tied to the Seldon Crises.
-2. **AI backend.** An optional server that uses a language model to voice station
+1. **Story.** Chapter three onward: Siwenna, Trantor, the Spacer worlds, Earth.
+2. **Core loop.** Docking, markets, cargo, missions tied to the Seldon Crises.
+3. **AI backend.** An optional server that uses a language model to voice station
    controllers, traders, and encyclopedia entries in the style of the books. The
    game must keep working without it.
-3. **Depth.** Combat, factions, Trantor sectors as dockable locations, the Time Vault.
+4. **Depth.** Combat, factions, Trantor sectors as dockable locations, the Time Vault.

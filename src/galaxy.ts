@@ -52,6 +52,10 @@ export class GalaxyMap {
   readonly controls: OrbitControls;
   selected: World | null = null;
   current: World;
+  /** When set, only these worlds can be selected and routed through. */
+  allowed: Set<string> | null = null;
+  route: World[] = [];
+  private routeLine: THREE.Line;
   private worldPoints: THREE.Points;
   private worldColors: Float32Array;
   private rangeRing: THREE.LineLoop;
@@ -125,6 +129,12 @@ export class GalaxyMap {
     this.link.visible = false;
     this.scene.add(this.link);
 
+    // multi-jump route
+    const routeGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+    this.routeLine = new THREE.Line(routeGeo, new THREE.LineBasicMaterial({ color: 0x7dffb0, transparent: true, opacity: 0.7 }));
+    this.routeLine.visible = false;
+    this.scene.add(this.routeLine);
+
     for (const w of WORLDS) {
       const d = document.createElement('div');
       d.className = 'map-label';
@@ -153,10 +163,56 @@ export class GalaxyMap {
   setCurrent(w: World): void {
     this.current = w;
     this.rangeRing.position.set(w.pos[0], w.pos[1], w.pos[2]);
-    this.selected = null;
-    this.selectRing.visible = false;
-    this.link.visible = false;
-    this.refreshColors();
+    // keep a selection whose route is still in progress
+    if (this.selected && this.selected.id !== w.id && this.planRoute(this.selected).length) {
+      this.select(this.selected);
+    } else {
+      this.selected = null;
+      this.selectRing.visible = false;
+      this.link.visible = false;
+      this.routeLine.visible = false;
+      this.route = [];
+      this.refreshColors();
+    }
+  }
+
+  isAllowed(w: World): boolean {
+    return !this.allowed || this.allowed.has(w.id);
+  }
+
+  /** Shortest chain of jumps from the current world to target. Empty when unreachable. */
+  planRoute(target: World): World[] {
+    if (target.id === this.current.id) return [];
+    const nodes = WORLDS.filter((w) => this.isAllowed(w) || w.id === this.current.id);
+    const dist = new Map<string, number>();
+    const prev = new Map<string, World>();
+    const open = new Set(nodes.map((w) => w.id));
+    for (const w of nodes) dist.set(w.id, Infinity);
+    dist.set(this.current.id, 0);
+    while (open.size) {
+      let u: World | null = null;
+      let best = Infinity;
+      for (const id of open) { const d = dist.get(id)!; if (d < best) { best = d; u = nodes.find((w) => w.id === id)!; } }
+      if (!u || best === Infinity) break;
+      open.delete(u.id);
+      if (u.id === target.id) break;
+      for (const v of nodes) {
+        if (!open.has(v.id)) continue;
+        const d = distance(u, v);
+        if (d > JUMP_RANGE) continue;
+        const nd = best + d;
+        if (nd < dist.get(v.id)!) { dist.set(v.id, nd); prev.set(v.id, u); }
+      }
+    }
+    if (!prev.has(target.id)) return [];
+    const path: World[] = [];
+    let cur: World | undefined = target;
+    while (cur && cur.id !== this.current.id) { path.unshift(cur); cur = prev.get(cur.id); }
+    return path;
+  }
+
+  nextHop(): World | null {
+    return this.route[0] ?? null;
   }
 
   open(): void {
@@ -178,19 +234,31 @@ export class GalaxyMap {
   }
 
   select(w: World | null): void {
+    if (w && !this.isAllowed(w)) w = null;
     this.selected = w;
     if (w) {
       this.selectRing.position.set(w.pos[0], w.pos[1], w.pos[2]);
       this.selectRing.visible = true;
+      this.route = this.planRoute(w);
+      const ok = this.route.length > 0;
       const a = this.current.pos, b = w.pos;
       this.link.geometry.setFromPoints([new THREE.Vector3(a[0], a[1], a[2]), new THREE.Vector3(b[0], b[1], b[2])]);
       this.link.computeLineDistances();
-      this.link.visible = true;
-      (this.link.material as THREE.LineDashedMaterial).color.set(this.inRange(w) ? 0x7dffb0 : 0xff6b6b);
-      (this.selectRing.material as THREE.MeshBasicMaterial).color.set(this.inRange(w) ? 0x7dffb0 : 0xff6b6b);
+      this.link.visible = !ok;
+      (this.link.material as THREE.LineDashedMaterial).color.set(0xff6b6b);
+      (this.selectRing.material as THREE.MeshBasicMaterial).color.set(ok ? 0x7dffb0 : 0xff6b6b);
+      if (ok) {
+        const pts = [this.current, ...this.route].map((x) => new THREE.Vector3(x.pos[0], x.pos[1], x.pos[2]));
+        this.routeLine.geometry.setFromPoints(pts);
+        this.routeLine.visible = true;
+      } else {
+        this.routeLine.visible = false;
+      }
     } else {
+      this.route = [];
       this.selectRing.visible = false;
       this.link.visible = false;
+      this.routeLine.visible = false;
     }
     this.refreshColors();
     this.onSelect?.(w);
@@ -212,13 +280,17 @@ export class GalaxyMap {
       let c: THREE.Color;
       if (w.id === this.current.id) c = new THREE.Color(0x3fd4ff);
       else if (this.selected && w.id === this.selected.id) c = new THREE.Color(0xffc14d);
+      else if (!this.isAllowed(w)) c = new THREE.Color(0x2c3240);
+      else if (w.minor) c = new THREE.Color(0x8a94a8);
       else if (this.inRange(w)) c = new THREE.Color(0xffffff);
-      else c = new THREE.Color(0x667088);
+      else c = new THREE.Color(0x9aa4b8);
       this.worldColors[i * 3] = c.r; this.worldColors[i * 3 + 1] = c.g; this.worldColors[i * 3 + 2] = c.b;
       const l = this.labels.get(w.id)!;
       l.classList.toggle('current', w.id === this.current.id);
       l.classList.toggle('selected', !!this.selected && w.id === this.selected.id);
       l.classList.toggle('inrange', this.inRange(w));
+      l.classList.toggle('locked', !this.isAllowed(w));
+      l.classList.toggle('minor', !!w.minor);
     });
     (this.worldPoints.geometry.attributes.color as THREE.BufferAttribute).needsUpdate = true;
   }
