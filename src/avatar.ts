@@ -25,6 +25,9 @@ export const AVATAR_FILES: Record<string, string> = {
   PATRON_B: 'patron_b',
   TAREN: 'taren',
   'SENNET BARR': 'sennet',
+  'DIRA VELM': 'dira',
+  'SUNMASTER TWENTY-ONE': 'sunmaster',
+  STATUE: 'statue',
 };
 
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.
@@ -49,6 +52,7 @@ export class Avatar implements Actor {
   private headPitch = 0;
   private gesture = 0;
   private scene: THREE.Group;
+  private statue = false;
 
   static async load(name: string, url: string, seated: boolean): Promise<Avatar> {
     const gltf = await new GLTFLoader().loadAsync(url);
@@ -74,6 +78,12 @@ export class Avatar implements Actor {
     });
     this.head = this.bones.get(B('Head')) ?? scene;
     this.root.updateMatrixWorld(true);
+    if (name === 'STATUE') {
+      // a metal figure: one material, no life in it
+      const metal = new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.95, roughness: 0.32 });
+      scene.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.material = metal; });
+      this.statue = true;
+    }
     // Pose in the character's own space: X right, Y up, Z forward. Then store it as the new rest pose.
     this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), -0.95);
     this.rotateInRootSpace('RightArm', new THREE.Vector3(0, 0, 1), 0.95);
@@ -116,6 +126,7 @@ export class Avatar implements Actor {
   setBaseYaw(y: number): void { this.baseYaw = y; this.root.rotation.y = y; }
 
   update(dt: number, time: number): void {
+    if (this.statue) return;
     const t = time + this.phase;
     const k = Math.min(1, dt * 4);
     // body turn

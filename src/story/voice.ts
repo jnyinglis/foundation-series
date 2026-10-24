@@ -62,6 +62,26 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Daniel', 'Alex'], pitch: 0.95, rate: 0.9 },
     portrait: { key: 'greycoat', prompt: 'A neat man of indeterminate age in a plain grey coat buttoned to the throat, smooth unlined face, short grey hair, pale eyes that give nothing back, standing in the doorway of a dark stone hall with cold light behind him. Calm, polite, utterly still.' },
   },
+  'DIRA VELM': {
+    voice: 'nova',
+    instructions: 'A nervous, precise assistant librarian in her forties. Quick, quiet, careful with every word, glancing over her shoulder. Warms when she talks about the catalogue.',
+    fx: 'plain',
+    fallback: { names: ['Karen', 'Samantha', 'Moira'], pitch: 1.05, rate: 1.05 },
+    portrait: { key: 'dira', prompt: 'A nervous, precise librarian in her forties of East Asian descent, blunt black bob, a dark formal suit with a Galactic Library sigil, lit from below by the blue glow of a catalogue console, surrounded by the galleries of a vast reading rotunda. Watchful, intelligent, afraid.' },
+  },
+  'SUNMASTER TWENTY-ONE': {
+    voice: 'onyx',
+    instructions: 'An old ceremonial leader of a closed sect. Very slow, deep, formal, every sentence a pronouncement. Dry contempt for outsiders, and under it a deep sadness.',
+    fx: 'plain',
+    fallback: { names: ['Daniel', 'Alex', 'Fred'], pitch: 0.75, rate: 0.82 },
+    portrait: { key: 'sunmaster', prompt: 'A very old bald man with no eyebrows, in a plain grey kirtle robe, the elder of a secretive sect, standing in a dark stone hall lit by candles with a dim metal statue of a humanoid robot behind him. Severe, formal, grieving.' },
+  },
+  MEMORY: {
+    voice: 'fable',
+    instructions: 'A faint recorded voice from very long ago. Old, kind, patient, slightly worn, as if played from a damaged medium. Speaks as a teacher to a child it will never meet.',
+    fx: 'robot',
+    fallback: { names: ['Daniel', 'Oliver'], pitch: 0.85, rate: 0.85 },
+  },
   COMMS: {
     voice: 'onyx',
     instructions: 'A flat, clipped port-authority radio operator. Bored, procedural, no emotion. Short pauses between clauses.',

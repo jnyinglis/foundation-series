@@ -15,7 +15,7 @@ import { JumpShader } from './shaders/jump';
 import { Dialogue } from './dialogue';
 import { VoicePlayer } from './voice';
 import { StoryEngine } from './story/engine';
-import { newStoryState, type StoryState } from './story/types';
+import { newStoryState, type StoryState, type Place } from './story/types';
 import { SECOND_MIND } from './story/second-mind';
 import { TrantorCity } from './city';
 import { Interior } from './interior';
@@ -159,7 +159,8 @@ function leaveCity(): void {
   view = 'space';
 }
 let interiorLoading = false;
-const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive' };
+const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen' };
+let lastLandmark: string | null = null;
 async function enterInterior(name = 'cantina'): Promise<void> {
   if ((view === 'interior' && interior?.sceneName === name) || interiorLoading) return;
   leaveCity();
@@ -185,9 +186,9 @@ function leaveInterior(): void {
   camera.fov = 62; camera.updateProjectionMatrix();
   view = 'space';
 }
-async function enterPlace(place: 'space' | 'cantina' | 'city' | 'archive'): Promise<void> {
+async function enterPlace(place: Place): Promise<void> {
   dialogue.hide();
-  if (place === 'cantina' || place === 'archive') await enterInterior(place);
+  if (place === 'cantina' || place === 'archive' || place === 'library' || place === 'sacratorium') await enterInterior(place);
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
@@ -453,7 +454,29 @@ function frame(): void {
     camera.position.copy(ship.position);
     camera.quaternion.copy(ship.quaternion);
     camera.updateMatrixWorld();
-    city.update(dt);
+    city.update(dt, timeAcc);
+    // landmark marker and arrival trigger
+    const lm = city.landmarks[0];
+    if (lm) {
+      tmpV.copy(lm.position).project(camera);
+      const behind = tmpV.z > 1;
+      let sx = ((tmpV.x + 1) / 2) * w, sy = ((1 - tmpV.y) / 2) * h;
+      const margin = 40;
+      const off = behind || sx < margin || sx > w - margin || sy < margin || sy > h - margin;
+      let angle = 0;
+      if (off) {
+        let dx = tmpV.x, dy = -tmpV.y; if (behind) { dx = -dx; dy = -dy; }
+        angle = Math.atan2(dy, dx);
+        const rx = (w / 2 - margin), ry = (h / 2 - margin);
+        const k = Math.min(Math.abs(rx / Math.cos(angle)), Math.abs(ry / Math.sin(angle)));
+        sx = w / 2 + Math.cos(angle) * k; sy = h / 2 + Math.sin(angle) * k;
+      }
+      const dist = ship.position.distanceTo(lm.position);
+      hud.setMarker(sx, sy, !storyLock && !dialogue.open, off, angle, `${lm.name}  ${(dist / 10).toFixed(0)} km`);
+      const here = city.landmarkAt(ship.position);
+      if (here && here.id !== lastLandmark) { lastLandmark = here.id; story?.fire({ type: 'landmark', id: here.id }); }
+      if (!here) lastLandmark = null;
+    }
     hud.setFlight(ship.speed, ship.throttle, ship.boost, ship.position.y / 10, state.fuel, FUEL_CAPACITY, state.credits, dateText());
     audio.setThrottle(ship.throttle, ship.boost);
     hud.setStatus(storyLock ? 'STORY' : ship.isLocked ? 'TRANTOR · ATMOSPHERIC FLIGHT · L TO RETURN' : 'CLICK TO FLY · L TO RETURN TO ORBIT', '');

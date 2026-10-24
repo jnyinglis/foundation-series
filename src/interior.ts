@@ -216,7 +216,15 @@ export class Interior {
     });
     this.scene.add(root);
     // lights for the characters only; the room itself is baked
-    if (this.sceneName === 'archive') {
+    if (this.sceneName === 'library') {
+      this.scene.add(new THREE.HemisphereLight(0xaab4cc, 0x2a2420, 1.1));
+      const oc = new THREE.PointLight(0xdde6ff, 30, 40, 1.4); oc.position.set(0, 14, 0); this.scene.add(oc);
+      const con = new THREE.PointLight(0x66ccff, 10, 12, 1.6); con.position.set(0, 2.5, 0); this.scene.add(con);
+    } else if (this.sceneName === 'sacratorium') {
+      this.scene.add(new THREE.HemisphereLight(0x303848, 0x0a0806, 0.6));
+      const shaft = new THREE.PointLight(0xc8d4ff, 18, 14, 1.5); shaft.position.set(0, 6, -11.5); this.scene.add(shaft);
+      for (const z of [9, 2, -5]) { const c = new THREE.PointLight(0xffb060, 5, 9, 1.6); c.position.set(0, 1.6, z); this.scene.add(c); }
+    } else if (this.sceneName === 'archive') {
       const hemi = new THREE.HemisphereLight(0x5a6a8a, 0x100c0a, 0.7); this.scene.add(hemi);
       const sky = new THREE.PointLight(0x9ab4ff, 14, 16, 1.5); sky.position.set(0, 8, -4); this.scene.add(sky);
       const lamp = new THREE.PointLight(0xffb070, 8, 8, 1.6); lamp.position.set(0.9, 1.8, -11.7); this.scene.add(lamp);

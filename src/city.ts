@@ -89,6 +89,8 @@ void main() {
 }
 `;
 
+export interface Landmark { id: string; name: string; position: THREE.Vector3; radius: number }
+
 export class TrantorCity {
   readonly scene = new THREE.Scene();
   readonly extent = 3200;
@@ -101,6 +103,8 @@ export class TrantorCity {
   private disposables: { dispose(): void }[] = [];
   readonly sunDir = new THREE.Vector3(0.4, 0.06, 0.6).normalize();
   readonly fogColor = new THREE.Color(0.018, 0.022, 0.04);
+  readonly landmarks: Landmark[] = [];
+  private beacon: THREE.Mesh | null = null;
 
   constructor() {
     const cols = Math.floor((this.extent * 2) / this.cell);
@@ -119,6 +123,7 @@ export class TrantorCity {
         if (avenue) continue;
         const x = (i + 0.5) * this.cell - this.extent;
         const z = (j + 0.5) * this.cell - this.extent;
+        if (Math.hypot(x - 900, z + 700) < 300) continue;
         const district = fbm2(x * 0.0006 + 3.1, z * 0.0006 + 7.7, 4);
         const local = fbm2(x * 0.004, z * 0.004, 3);
         let h = 40 + Math.pow(district, 2.2) * 900 + local * 180 + hash2(i, j) * 60;
@@ -176,6 +181,30 @@ export class TrantorCity {
     this.scene.add(sky);
     this.disposables.push(skyGeo, skyMat);
 
+    // the Galactic Library: a dome on a plaza, with a beacon
+    const lib = new THREE.Vector3(900, 0, -700);
+    const plazaGeo = new THREE.CylinderGeometry(260, 260, 60, 48);
+    const plazaMat = new THREE.MeshBasicMaterial({ color: 0x0b0d14 });
+    const plaza = new THREE.Mesh(plazaGeo, plazaMat); plaza.position.set(lib.x, 30, lib.z); this.scene.add(plaza);
+    const domeGeo = new THREE.SphereGeometry(170, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+    const domeMat = new THREE.MeshStandardMaterial({ color: 0x8a8f99, roughness: 0.55, metalness: 0.6, emissive: 0x111826, emissiveIntensity: 1 });
+    const dome = new THREE.Mesh(domeGeo, domeMat); dome.position.set(lib.x, 60, lib.z); this.scene.add(dome);
+    const ringGeo = new THREE.TorusGeometry(175, 4, 8, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x3fd4ff });
+    const ring = new THREE.Mesh(ringGeo, ringMat); ring.rotation.x = Math.PI / 2; ring.position.set(lib.x, 62, lib.z); this.scene.add(ring);
+    const beaconGeo = new THREE.CylinderGeometry(6, 6, 700, 12);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
+    this.beacon = new THREE.Mesh(beaconGeo, beaconMat); this.beacon.position.set(lib.x, 230 + 350, lib.z); this.scene.add(this.beacon);
+    const sun = new THREE.DirectionalLight(0xffd0a0, 1.2); sun.position.copy(this.sunDir).multiplyScalar(1000).add(lib); sun.target.position.copy(lib); this.scene.add(sun); this.scene.add(sun.target);
+    this.scene.add(new THREE.HemisphereLight(0x223355, 0x050608, 0.8));
+    this.disposables.push(plazaGeo, plazaMat, domeGeo, domeMat, ringGeo, ringMat, beaconGeo, beaconMat);
+    this.landmarks.push({ id: 'library', name: 'GALACTIC LIBRARY', position: new THREE.Vector3(lib.x, 230, lib.z), radius: 420 });
+    // keep the plaza clear of towers
+    for (let i = 0; i < cols; i++) for (let j = 0; j < cols; j++) {
+      const x = (i + 0.5) * this.cell - this.extent, z = (j + 0.5) * this.cell - this.extent;
+      if (Math.hypot(x - lib.x, z - lib.z) < 300) this.heights[i * cols + j] = 0;
+    }
+
     // traffic lanes along the avenues
     const count = 4000;
     this.trafficData = new Float32Array(count * 4); // axis, fixed coord, altitude, speed
@@ -220,7 +249,14 @@ export class TrantorCity {
     if (p.y > 2600) p.y = 2600;
   }
 
-  update(dt: number): void {
+  /** The landmark the ship is inside, if any. */
+  landmarkAt(p: THREE.Vector3): Landmark | null {
+    for (const l of this.landmarks) if (p.distanceTo(l.position) < l.radius) return l;
+    return null;
+  }
+
+  update(dt: number, time = 0): void {
+    if (this.beacon) (this.beacon.material as THREE.MeshBasicMaterial).opacity = 0.25 + 0.15 * Math.sin(time * 2);
     const d = this.trafficData, pos = this.trafficPos;
     for (let i = 0; i < d.length / 4; i++) {
       const axis = d[i * 4], speed = d[i * 4 + 3];

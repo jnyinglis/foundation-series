@@ -11,6 +11,9 @@ const CORIN = 'CORIN PELLIS';
 const COMMS = 'COMMS';
 const SENNET = 'SENNET BARR';
 const GREY = 'GREY COAT';
+const DIRA = 'DIRA VELM';
+const SUNMASTER = 'SUNMASTER TWENTY-ONE';
+const MEMORY = 'MEMORY';
 
 export const SECOND_MIND: Story = {
   id: 'second-mind',
@@ -319,7 +322,7 @@ export const SECOND_MIND: Story = {
         { say: 'One more jump. The core is bright enough here to read by. Trantor is in the middle of it, a world that does not know it has already died.', who: ILEN },
       ],
     },
-    // ---------------------------------------------------------------- Chapter 4 (opening)
+    // ---------------------------------------------------------------- Chapter 4
     {
       id: 'ch4-arrive',
       trigger: { type: 'arrive', world: 'trantor' },
@@ -330,10 +333,102 @@ export const SECOND_MIND: Story = {
         { enter: 'city' },
         { say: 'The city opens underneath you like a wound that has healed over steel. Towers rise past the ship on both sides. Lights, in every one of them, all the way down.' },
         { say: 'I grew up on a world with one city. This is one city with a world inside it. How do you find a library in that?', who: CORIN },
-        { say: 'You ask a librarian.', who: ILEN },
-        { journal: 'Trantor. We are in the atmosphere, over the city. The Library is somewhere below. Chapter Four continues in the next build.' },
-        { objective: 'Chapter Four continues in the next build. Fly the city. Press L to return to orbit.' },
-        { end: 'End of the current build. Chapter Four, Trantor, continues next.' },
+        { say: 'You ask a librarian. The Library has a beacon. Every ship on Trantor can see it. Follow it.', who: ILEN },
+        { objective: 'Fly to the Galactic Library. Follow the beacon marker and enter the plaza.' },
+        { journal: 'Trantor. We are in the atmosphere over the city, following the Library beacon.' },
+      ],
+    },
+    {
+      id: 'ch4-library',
+      trigger: { type: 'landmark', id: 'library' },
+      steps: [
+        { say: 'The dome of the Library rises out of the towers like a planet of its own. You set the Kestrel down on the plaza. Nobody stops you. Nobody has stopped anyone here for a long time.' },
+        { enter: 'library' },
+        { say: 'Inside, the rotunda goes up and up, galleries over galleries, to an eye of white light at the top. At the centre, a catalogue console hums to itself with nobody at it. Then somebody is at it.' },
+        { say: 'You are not readers. Readers come in the morning and they do not bring pilots. What do you want?', who: DIRA },
+        { say: 'An assistant librarian, forty, with a sigil on her collar and the look of somebody who has been expecting bad news for twenty years.' },
+        { say: 'The Imperial survey of the Sirius Sector. The master entry. The one your catalogue says does not exist.', who: ILEN },
+        { say: 'She goes still. Her hand does not move toward the console. That is how you know she can find it.' },
+        { choice: [
+          { text: 'Show her the chart from Siwenna.', set: ['showed-chart'] },
+          { text: 'Nudge her mind. Just enough to make her curious.', set: ['nudged-dira'], strain: 1 },
+          { text: 'Let Corin offer her money.', set: ['bribed-dira'] },
+        ] },
+        { if: ['showed-chart'], then: [
+          { say: 'Ilen unfolds the foil under the console light. The librarian looks at it for a long time. Something in her face gives up a fight it has been having for years.' },
+          { say: 'I have seen that notation once. In the deletion log. Nobody reads the deletion log. Come here. Do not touch anything.', who: DIRA },
+        ] },
+        { if: ['nudged-dira'], then: [
+          { say: 'You lean on the part of her that wants to know. It is not hard. It was most of her already. The cable in your mind pulls tight again and holds.', who: TAREN },
+          { say: 'I should not do this. I am going to do this. Come here. Do not touch anything.', who: DIRA },
+        ] },
+        { if: ['bribed-dira'], then: [
+          { say: 'Corin puts a roll of Foundation credits on the console. The librarian looks at it the way she would look at a dead animal.' },
+          { say: 'Put that away before a camera sees it. I will show you one thing, once, because you are going to leave faster if I do.', who: DIRA },
+          { set: ['library-flagged'] },
+        ] },
+        { say: 'She brings up a log that scrolls for a long time before it stops. One line, repeated every century, in the same words.' },
+        { say: 'Entry withdrawn. Standing instruction of the Office of the Chief Librarian, to be renewed in perpetuity. The first instruction is the oldest line in the catalogue. It is signed by the First Minister of the Empire. The initials are E. D.', who: DIRA },
+        { say: 'Eto Demerzel. Cleon the First\'s minister. The man who saved Hari Seldon. Twelve thousand years ago.', who: ILEN },
+        { say: 'Not a man. The name goes through you like a current. You do not know why. You will.', who: TAREN },
+        { say: 'There is one place on Trantor that never accepted the deletion. Mycogen. They keep a Book from before the Empire. They say the Dawn World is in it, and the Fifty Worlds, with their positions. They will not show it to you. They do not show it to anyone.', who: DIRA },
+        { say: 'Go now. If anyone asks, you came for the Encyclopedia and I told you nothing, which is what the Library tells everyone.', who: DIRA },
+        { journal: 'The Galactic Library. The Sirius entry was withdrawn by a standing instruction of the Chief Librarian, renewed every century for twelve thousand years. The first order was signed E. D. Eto Demerzel. Dira Velm sent us to Mycogen.' },
+        { say: 'Mycogen is a sector of the city, an hour by the lower ways. Corin buys three skincaps from a stall at the gate, because nobody with hair is allowed inside, and you walk in bald among the bald.' },
+        { enter: 'sacratorium' },
+        { say: 'The Sacratorium is the only building in Mycogen that is not a farm. It is a hall of grey stone and candles, and at the far end, on a dais, in a shaft of light, stands a man made of metal.' },
+        { say: 'A statue. A very old one. Its face is nobody\'s face. You cannot look away from it, and you do not know why.', who: TAREN },
+        { say: 'Tribespeople do not enter the Sacratorium. You have entered. Give me a reason not to have you removed.', who: SUNMASTER },
+        { say: 'An old man in a grey kirtle, bald as an egg, with no eyebrows and eyes like wet stones. Sunmaster Twenty-One. He has not raised his voice. He has never needed to.' },
+        { say: 'We are looking for the Dawn World. The Library sent us. The Library has forgotten it on purpose. We were told you have not.', who: ILEN },
+        { say: 'He looks at Ilen. He looks at Corin. Then he looks at you, and keeps looking.' },
+        { say: 'You do not breathe when you listen, tribesman. The others breathe. I have been watching. You have not taken a breath since you came in.', who: SUNMASTER },
+        { choice: [
+          { text: 'Reach into him and turn the thought aside.', set: ['nudged-sunmaster'], strain: 1 },
+          { text: 'Let Corin talk.', set: ['corin-bluffed'] },
+          { text: 'Offer him the Siwenna chart in trade.', set: ['traded-chart'] },
+        ] },
+        { if: ['nudged-sunmaster'], then: [
+          { say: 'You push, gently, at the shape of his suspicion, and it slides away like a thing on ice. His eyes lose their focus for a moment. Then he is looking at Ilen again, as if you were furniture.', who: TAREN },
+          { say: 'The strain is worse each time. You are aware that you are keeping count.', who: TAREN },
+          { say: 'As I was saying. The Dawn World.', who: SUNMASTER },
+        ] },
+        { if: ['corin-bluffed'], then: [
+          { say: 'Pilots. We stop breathing on final approach and some of us forget to start again. He flew us down through your traffic. Give him a minute.', who: CORIN },
+          { say: 'The old man does not smile, because he does not smile, but something in the grey face decides to let it go.' },
+          { say: 'Pilots. Yes. The Dawn World, then.', who: SUNMASTER },
+        ] },
+        { if: ['traded-chart'], then: [
+          { say: 'Ilen puts the Siwenna chart on the lectern. The old man reads the Imperial notation as if it were his own hand. He does not look at you again.' },
+          { say: 'A chart with a name scratched out. The tribes keep what they are told to keep. Very well. The Dawn World.', who: SUNMASTER },
+          { set: ['chart-traded-away'] },
+        ] },
+        { say: 'He opens the Book. It is not a book. It is a sheet of something that is not metal and not glass, and the writing on it moves when he touches it.' },
+        { say: 'Aurora. The World of the Dawn, first of the Fifty, where our ancestors lived with the ones they made, until the ones they made betrayed them and the Lost Ones were driven out. Its sun is called Tau Ceti. The Book gives the position in the old reckoning. Write it down, tribeswoman. You will not see the Book again.', who: SUNMASTER },
+        { say: 'Ilen writes. The coordinates fit the Sirius chart like a key fits a lock. The scratched-out world is three jumps from Aurora.', who: ILEN },
+        { say: 'And that one. The Renegade. Made in Aurora in the image of a man, and left behind when the Lost Ones fled. It does not move. It has not moved in twelve thousand years. We keep it so that we remember what we are owed.', who: SUNMASTER },
+        { say: 'You stand in front of the statue. The metal face looks at nothing. And something opens in you that was closed, and a voice you have never heard speaks as if it had been waiting for this exact place.', who: TAREN },
+        { say: 'If you are hearing this, you have found the Dawn World, or its shadow. Good. I made you so that someone would. Tell him nothing. He means well, and that is the whole of the danger. Judge for yourself.', who: MEMORY },
+        { say: 'It stops. Nothing else comes. You are standing in a stone hall on Trantor with a librarian\'s coordinates and an old man\'s contempt, and for the first time in sixty years you know that somebody made you on purpose.', who: TAREN },
+        { journal: 'Mycogen. The Book names Aurora, Tau Ceti, and gives its position. A metal statue they call the Renegade stands in the Sacratorium; standing before it, a recorded voice spoke to me. Somebody made me on purpose. The voice said: tell him nothing. Judge for yourself.' },
+        { set: ['memory-1'] },
+        { enter: 'space' },
+        { say: 'The Kestrel climbs out of Trantor on a lane nobody checks. Corin keeps looking at you in the reflection of the viewport and not asking.' },
+        { say: 'Aurora is in the Sayshell direction, past the Sark worlds. Sayshell is independent and the Foundation has no eyes there. If somebody is following us, that is where we find out.', who: ILEN },
+        { objective: 'Reach Sayshell by way of Sark and Vega. Select Sayshell on the chart.' },
+        { unlock: ['gc2201', 'sark', 'florina', 'vega', 'gc3310', 'sayshell'] },
+      ],
+    },
+    // ---------------------------------------------------------------- Chapter 5 (opening)
+    {
+      id: 'ch5-arrive',
+      trigger: { type: 'arrive', world: 'sayshell' },
+      steps: [
+        { chapter: 'Chapter Five', sub: 'Sayshell' },
+        { say: 'Sayshell. Capital of a union the Foundation never swallowed. The city wears flowers in its streets and knives in its pockets. From here the road leads out past the Sirius Sector to the Spacer worlds, and to whatever is left of them.' },
+        { journal: 'Sayshell. Chapter Five continues in the next build.' },
+        { objective: 'Chapter Five continues in the next build. Explore freely.' },
+        { end: 'End of the current build. Chapter Five, Sayshell, continues next.' },
       ],
     },
   ],

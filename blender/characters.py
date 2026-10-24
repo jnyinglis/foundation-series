@@ -54,6 +54,21 @@ CHARACTERS = {
         skin='old_caucasian_female.mhmat', hair='rehmanpolanski_hair_bun_brown.mhclo', eyebrows='eyebrow004.mhclo', eyelashes='eyelashes01.mhclo',
         clothes=['donitz_monk_robe.mhclo', 'shoes03.mhclo'],
     ),
+    'dira': dict(
+        macro=dict(gender=0.1, age=0.5, muscle=0.45, weight=0.45, proportions=0.55, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.25, 0.7, 0.05)),
+        skin='middleage_asian_female.mhmat', hair='toigo_blunt_bob.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_01.mhclo',
+        clothes=['female_elegantsuit01.mhclo', 'toigo_flats.mhclo'],
+    ),
+    'sunmaster': dict(
+        macro=dict(gender=0.95, age=0.85, muscle=0.4, weight=0.42, proportions=0.5, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.8, 0.15, 0.05)),
+        skin='old_caucasian_male.mhmat', hair=None, eyebrows=None, eyelashes='eyelashes01.mhclo',
+        clothes=['donitz_monk_robe_hood_down.mhclo'],
+    ),
+    'statue': dict(
+        macro=dict(gender=0.9, age=0.45, muscle=0.6, weight=0.5, proportions=0.7, height=0.7, cupsize=0.5, firmness=0.5, race=race(0.34, 0.33, 0.33)),
+        skin='young_caucasian_male2.mhmat', hair=None, eyebrows=None, eyelashes=None,
+        clothes=['matcreator_mc-skinsuit_2022.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',
@@ -92,6 +107,8 @@ def build(key, spec):
     rig = HumanService.add_builtin_rig(human, 'mixamo', import_weights=True)
     print(f'[{key}] rig {rig.name if rig else None} bones {len(rig.data.bones) if rig else 0}')
     for subdir, name, kind in [('eyes', 'low-poly.mhclo', 'Eyes'), ('eyebrows', spec['eyebrows'], 'Eyebrows'), ('eyelashes', spec['eyelashes'], 'Eyelashes'), ('teeth', 'teeth_shape02.mhclo', 'Teeth'), ('hair', spec['hair'], 'Hair')]:
+        if not name:
+            continue
         try:
             HumanService.add_mhclo_asset(asset(subdir, name), human, asset_type=kind, subdiv_levels=0, material_type='MAKESKIN', set_up_rigging=True, interpolate_weights=True)
         except Exception as e:  # noqa: BLE001

@@ -1,4 +1,4 @@
-import type { Story, StoryState, Scene, Step, Trigger, Choice } from './types';
+import type { Story, StoryState, Scene, Step, Trigger, Choice, Place } from './types';
 
 export interface StoryHooks {
   say(who: string, text: string): Promise<void>;
@@ -14,7 +14,7 @@ export interface StoryHooks {
   crew(name: string): void;
   lock(locked: boolean): void;
   end(text: string): void;
-  enter(place: 'space' | 'cantina' | 'city' | 'archive'): Promise<void>;
+  enter(place: Place): Promise<void>;
   save(): void;
 }
 
@@ -22,6 +22,7 @@ function triggerMatches(a: Trigger, b: Trigger): boolean {
   if (a.type !== b.type) return false;
   if (a.type === 'start') return true;
   if (a.type === 'flag') return a.flag === (b as { flag: string }).flag;
+  if (a.type === 'landmark') return a.id === (b as { id: string }).id;
   return (a as { world: string }).world === (b as { world: string }).world;
 }
 
