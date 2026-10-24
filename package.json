@@ -13,6 +13,8 @@
     "characters": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/characters.py --",
     "scene:library": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/library.py -- public/scenes",
     "scene:sacratorium": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/sacratorium.py -- public/scenes",
+    "scene:terrace": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/terrace.py -- public/scenes",
+    "scene:vault": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/vault.py -- public/scenes",
     "scene:archive": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/archive.py -- public/scenes",
     "scene:cantina": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/cantina.py -- public/scenes",
     "connectivity": "tsx scripts/connectivity.ts"

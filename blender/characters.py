@@ -69,6 +69,26 @@ CHARACTERS = {
         skin='young_caucasian_male2.mhmat', hair=None, eyebrows=None, eyelashes=None,
         clothes=['matcreator_mc-skinsuit_2022.mhclo'],
     ),
+    'vask': dict(
+        macro=dict(gender=0.98, age=0.5, muscle=0.85, weight=0.7, proportions=0.4, height=0.75, cupsize=0.5, firmness=0.5, race=race(0.3, 0.1, 0.6)),
+        skin='middleage_african_male.mhmat', hair=None, eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_casualsuit04.mhclo', 'culturalibre_male_boots.mhclo'],
+    ),
+    'quintesetz': dict(
+        macro=dict(gender=0.95, age=0.8, muscle=0.4, weight=0.55, proportions=0.5, height=0.45, cupsize=0.5, firmness=0.5, race=race(0.2, 0.75, 0.05)),
+        skin='old_asian_male.mhmat', hair='short02.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_casualsuit06.mhclo', 'shoes02.mhclo'],
+    ),
+    'deniador': dict(
+        macro=dict(gender=0.95, age=0.62, muscle=0.35, weight=0.35, proportions=0.6, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.9, 0.05, 0.05)),
+        skin='old_caucasian_male.mhmat', hair='short04.mhclo', eyebrows='eyebrow004.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_elegantsuit01.mhclo', 'shoes01.mhclo'],
+    ),
+    'vos': dict(
+        macro=dict(gender=0.1, age=0.48, muscle=0.65, weight=0.45, proportions=0.6, height=0.6, cupsize=0.4, firmness=0.7, race=race(0.6, 0.3, 0.1)),
+        skin='young_caucasian_female2.mhmat', hair='ponytail01.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
+        clothes=['thegreatengineer_galactic_warrior_uniform.mhclo', 'culturalibre_heroine_boots_2.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',

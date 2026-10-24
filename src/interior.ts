@@ -216,7 +216,28 @@ export class Interior {
     });
     this.scene.add(root);
     // lights for the characters only; the room itself is baked
-    if (this.sceneName === 'library') {
+    if (this.sceneName === 'terrace') {
+      // dusk sky over the city
+      const skyGeo = new THREE.SphereGeometry(160, 32, 16);
+      const skyMat = new THREE.ShaderMaterial({
+        side: THREE.BackSide, depthWrite: false,
+        vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader: `precision highp float; varying vec3 vDir;
+          float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+          void main(){ vec3 d = normalize(vDir); float t = clamp(d.y, 0.0, 1.0);
+            vec3 horizon = vec3(0.95, 0.45, 0.25); vec3 mid = vec3(0.45, 0.22, 0.4); vec3 zenith = vec3(0.04, 0.05, 0.14);
+            vec3 col = mix(horizon, mid, smoothstep(0.0, 0.25, t)); col = mix(col, zenith, smoothstep(0.2, 0.7, t));
+            float stars = step(0.9975, h(floor(d.xz / max(d.y, 0.05) * 60.0))) * smoothstep(0.3, 0.8, t);
+            col += stars * 0.8; gl_FragColor = vec4(col, 1.0); }`,
+      });
+      const sky = new THREE.Mesh(skyGeo, skyMat); sky.position.y = -20; this.scene.add(sky); this.disposables.push(skyGeo, skyMat);
+      this.scene.add(new THREE.HemisphereLight(0x8878a0, 0x40281c, 1.3));
+      const sun = new THREE.DirectionalLight(0xffa070, 1.4); sun.position.set(-6, 8, 10); this.scene.add(sun);
+      for (const z of [4, 0, -4]) for (const x of [-6, 0, 6]) { const b = new THREE.PointLight(0xffc880, 3, 7, 1.6); b.position.set(x, 3.1, z); this.scene.add(b); }
+    } else if (this.sceneName === 'vault') {
+      this.scene.add(new THREE.HemisphereLight(0xc0ccdd, 0x303438, 1.4));
+      for (const z of [8, 4, 0, -4, -8]) { const l = new THREE.PointLight(0xd8e6ff, 7, 9, 1.5); l.position.set(0, 3.9, z); this.scene.add(l); }
+    } else if (this.sceneName === 'library') {
       this.scene.add(new THREE.HemisphereLight(0xaab4cc, 0x2a2420, 1.1));
       const oc = new THREE.PointLight(0xdde6ff, 30, 40, 1.4); oc.position.set(0, 14, 0); this.scene.add(oc);
       const con = new THREE.PointLight(0x66ccff, 10, 12, 1.6); con.position.set(0, 2.5, 0); this.scene.add(con);

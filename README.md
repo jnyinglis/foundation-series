@@ -25,7 +25,7 @@ The `dist/` folder can be hosted on GitHub Pages or any static host.
   with its origin memory blocked. An Encyclopedist named Ilen Sarvo has found the
   one surviving index entry for a world called Earth. Someone has erased every
   other copy for ten thousand years. Chapters unlock worlds as the story moves.
-  Chapters one to four are written, and chapter five opens at Sayshell.
+  Chapters one to five are written, and chapter six opens at Aurora.
 
 Stories are data. See `src/story/types.ts` for the format and
 `src/story/second-mind.ts` for the script. A scene fires on a trigger (start,
@@ -98,6 +98,8 @@ npm run scene:cantina           # builds public/scenes/cantina.glb and cantina.j
 npm run scene:archive           # the Siwenna archive
 npm run scene:library           # the Galactic Library rotunda
 npm run scene:sacratorium       # the Sacratorium of Mycogen
+npm run scene:terrace           # the Sayshell terrace at dusk
+npm run scene:vault             # the Comporellon archive vault
 npm run scene:cantina -- --fast # quick low-sample preview
 ```
 

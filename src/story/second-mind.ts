@@ -14,6 +14,10 @@ const GREY = 'GREY COAT';
 const DIRA = 'DIRA VELM';
 const SUNMASTER = 'SUNMASTER TWENTY-ONE';
 const MEMORY = 'MEMORY';
+const VASK = 'VASK OREN';
+const QUINT = 'QUINTESETZ';
+const DENIADOR = 'ALDO DENIADOR';
+const VOS = 'CAPTAIN VOS';
 
 export const SECOND_MIND: Story = {
   id: 'second-mind',
@@ -419,16 +423,143 @@ export const SECOND_MIND: Story = {
         { unlock: ['gc2201', 'sark', 'florina', 'vega', 'gc3310', 'sayshell'] },
       ],
     },
-    // ---------------------------------------------------------------- Chapter 5 (opening)
+    // ---------------------------------------------------------------- Chapter 5
     {
       id: 'ch5-arrive',
       trigger: { type: 'arrive', world: 'sayshell' },
       steps: [
         { chapter: 'Chapter Five', sub: 'Sayshell' },
         { say: 'Sayshell. Capital of a union the Foundation never swallowed. The city wears flowers in its streets and knives in its pockets. From here the road leads out past the Sirius Sector to the Spacer worlds, and to whatever is left of them.' },
-        { journal: 'Sayshell. Chapter Five continues in the next build.' },
-        { objective: 'Chapter Five continues in the next build. Explore freely.' },
-        { end: 'End of the current build. Chapter Five, Sayshell, continues next.' },
+        { say: 'There is a scholar here, Quintesetz, who answers letters about old worlds. He answered one of mine, six years ago, and then stopped. He drinks on the Terrace of the Lanterns at dusk. Everybody knows that. That is how a scholar hides.', who: ILEN },
+        { objective: 'Enter orbit over Sayshell and land at the Terrace of the Lanterns.' },
+      ],
+    },
+    {
+      id: 'ch5-orbit',
+      trigger: { type: 'orbit', world: 'sayshell' },
+      steps: [
+        { say: 'Sayshell City at dusk, from a terrace halfway up its tallest hill. String lights, flowering shrubs, a balustrade, and a drop to a million windows coming on below.' },
+        { enter: 'terrace' },
+        { say: 'Corin stops on the top step. You feel it before you see him: a big man at the end of the terrace, leaning on the stone, in no hurry at all.' },
+        { say: 'Pellis. Kalgan says hello. You left in such a hurry you forgot to leave an address, so I had to find one. Sayshell is lovely this time of year.', who: VASK },
+        { say: 'Vask Oren. He collects for the Kalganian lenders. He has never hit anyone, Corin told you once. He has never needed to.' },
+        { say: 'I do not have it, Vask. You know I do not have it. You took the ship.', who: CORIN },
+        { say: 'I took a ship. The debt was for a ship and a half. The half is still open, and it has been travelling with you, which means it is now travelling with them. Who are your friends, Pellis?', who: VASK },
+        { choice: [
+          { text: 'Pay the half. 600 credits.', set: ['paid-vask'], credits: -600 },
+          { text: 'Reach into him. Make him remember the debt as settled.', set: ['nudged-vask'], strain: 1 },
+          { text: 'Tell him the Kestrel is a Ponyets House hull and the House pays its debts.', set: ['bluffed-vask'] },
+        ] },
+        { if: ['paid-vask'], then: [
+          { say: 'You count it out onto the balustrade. He does not pick it up until you have finished. Then he does, and it is gone, and so is his interest in you.' },
+          { say: 'Settled. Tell her to stay away from Kalgan anyway. Sentiment is not a line in my ledger.', who: VASK },
+          { journal: 'Vask Oren, collecting for the Kalganian lenders, found Corin on Sayshell. I paid the half-debt. 600 credits.' },
+        ] },
+        { if: ['nudged-vask'], then: [
+          { say: 'You find the ledger in his mind, the place where Pellis is still an open line, and you close it. It is a small thing. It costs you more than it should. He blinks.', who: TAREN },
+          { say: 'Settled. I was sure... Settled. Tell her to stay away from Kalgan anyway.', who: VASK },
+          { say: 'He goes down the steps touching the wall, like a man who has stood up too fast. Corin watches him go and then watches you.' },
+          { journal: 'Vask Oren found Corin on Sayshell. I closed the debt in his head. Corin saw me do it. She has not said anything. Yet.' },
+          { set: ['corin-suspects'] },
+        ] },
+        { if: ['bluffed-vask'], then: [
+          { say: 'Ponyets House. On Terminus. Which is a long way from Kalgan, and a longer way from here. I will write to them. Lenders are patient, Pellis. That is the whole of what we are.', who: VASK },
+          { say: 'He goes. He will write to Ponyets House. Ponyets House will not be pleased. That is a problem for another system.' },
+          { journal: 'Vask Oren found Corin on Sayshell. I told him the Kestrel is a Ponyets House hull. He will write to Terminus. The House will not like the letter.' },
+          { set: ['house-will-hear'] },
+        ] },
+        { say: 'The scholar is at a corner table under the lanterns with a glass of something gold, watching all of it with the pleasure of a man who collects other people\'s trouble.' },
+        { say: 'Encyclopedist Sarvo. I stopped answering you because you asked good questions, and I am too old to be asked good questions. Sit. The wine is terrible. Tell me what you want with a dead world.', who: QUINT },
+        { say: 'Earth. We have its position from Siwenna and the Dawn World\'s from Mycogen. We need the rest of the Fifty, to be sure of the sector.', who: ILEN },
+        { say: 'Then you need Comporellon. Cold, grim, and proud of it. Their Ministry keeps an archive they are not supposed to have, from before the Empire, with the Spacer worlds in it. A scholar there, Deniador, will show it to you if you flatter him. He is easy to flatter. It is the only easy thing on Comporellon.', who: QUINT },
+        { say: 'He drinks. Then he does not laugh, which from him is a kind of warning.' },
+        { say: 'A man in a grey coat sat where you are sitting, two days ago, and asked me the same thing. I told him the same thing. I do not think he needed telling.', who: QUINT },
+        { say: 'Also. Between here and there you pass Gaia. Do not stop at Gaia. Nobody who stops at Gaia comes back to tell me the wine is terrible.', who: QUINT },
+        { journal: 'Quintesetz sent us to Comporellon and a scholar named Deniador, who keeps the Spacer worlds in a Ministry archive. The grey coat was here two days ago. Quintesetz warned us off Gaia.' },
+        { enter: 'space' },
+        { objective: 'Reach Comporellon by way of Gaia. Do not stop at Gaia. Select Comporellon on the chart.' },
+        { unlock: ['gaia', 'comporellon'] },
+      ],
+    },
+    {
+      id: 'ch5-gaia',
+      trigger: { type: 'arrive', world: 'gaia' },
+      steps: [
+        { say: 'Gaia. A green world under a quiet sun, and nothing on the comms, and no ships. The Kestrel comes out of the jump and for a moment every instrument on the board reads a fraction high, as if the system were listening.' },
+        { say: 'There is something here. Not a mind. Not one mind. It is like standing at the edge of a sea at night and knowing the sea is awake.', who: TAREN },
+        { say: 'I do not like it. Jump. Please jump.', who: ILEN },
+        { say: 'Taking the old man\'s advice. Plotting Comporellon.', who: CORIN },
+        { journal: 'Gaia. We did not stop. Something in that system is awake, and it is not one mind. I do not have a word for what it is.' },
+      ],
+    },
+    {
+      id: 'ch5-comporellon',
+      trigger: { type: 'arrive', world: 'comporellon' },
+      steps: [
+        { say: 'Comporellon. A cold world of grey cities and a people who believe they were the first, and who keep their archives the way other worlds keep their weapons.' },
+        { say: 'Port control wants our registry, our cargo, our purpose and our religion. I gave them the first two and lied about the third. They did not ask about the fourth twice.', who: CORIN },
+        { objective: 'Enter orbit over Comporellon and land at the Ministry archive.' },
+      ],
+    },
+    {
+      id: 'ch5-vault',
+      trigger: { type: 'orbit', world: 'comporellon' },
+      steps: [
+        { say: 'The Ministry archive is under a building that has no name on it. A lift goes down for a long time. At the bottom, a vault of grey steel and white light, and a thin man who has been waiting.' },
+        { enter: 'vault' },
+        { say: 'Encyclopedist. Quintesetz wrote. He said you ask good questions. I will tell you now that I do not answer questions. I show documents, and the documents answer.', who: DENIADOR },
+        { say: 'Aldo Deniador. He does not shake hands. He checks the time.' },
+        { say: 'The Spacer worlds. The Fifty. We have Aurora\'s position from Mycogen. We want to confirm it against your table and take the others.', who: ILEN },
+        { say: 'Then give me Aurora. If your position matches the table, I will know you are not police, because the police do not have Mycogen. If it does not match, we are done.', who: DENIADOR },
+        { say: 'Ilen gives him the numbers. He enters them without writing them down. The terminal thinks. Then it draws a small bright point on a chart of the sector, and the point sits exactly on a point that was already there.' },
+        { say: 'Aurora. Tau Ceti. The Book of Mycogen is correct to four places. Remarkable. Very well. The Fifty, with their positions, in the old reckoning. Solaria. Melpomenia. And here, with no name and a note in a hand I do not know: the world the Fifty came from.', who: DENIADOR },
+        { say: 'You look at the chart and the point with no name, and the second door opens in you, the one you did not know was there.', who: TAREN },
+        { say: 'The Fifty are empty. Do not grieve for them; they chose it. One of them still has a mind in it that will try to keep you. The world with no name is the one that matters, and it will not want you either. Go anyway.', who: MEMORY },
+        { set: ['memory-2'] },
+        { journal: 'Comporellon. Deniador\'s table confirms Aurora and gives Solaria, Melpomenia and the position of the world with no name. A second recorded voice: the Fifty are empty, one still has a mind in it, the nameless world will not want us.' },
+        { say: 'The vault door cycles. A red lamp over it goes from red to redder. The man in the grey coat comes in with a woman in a Ministry uniform, and he lets her go first, because that is the polite thing to do.' },
+        { say: 'Captain Vos, Port Authority. Your vessel, the Kestrel, is impounded under the Foreign Hulls Act pending review. This gentleman has lodged the complaint. You will surrender your data and accompany me.', who: VOS },
+        { say: 'I did say I would not stop you that day. This is a different day. Captain, they have the Comporellon table. That is a state secret, which I believe is a crime here.', who: GREY },
+        { say: 'You open the sense. Vos is afraid of him and does not know why. She is a decent officer carrying an order she dislikes. He, as before, is nothing at all.', who: TAREN },
+        { choice: [
+          { text: 'Reach into Vos. Make her see a forged release order.', set: ['nudged-vos'], strain: 1 },
+          { text: 'Let Corin post a Trader bond for the hull. 400 credits.', set: ['bonded-hull'], credits: -400 },
+          { text: 'Invoke the Foundation treaty. Impounding a Foundation hull is an act of war.', set: ['invoked-treaty'], needs: ['corin-share'] },
+        ] },
+        { if: ['nudged-vos'], then: [
+          { say: 'You give her what she wants, which is a reason. She reads a release order that does not exist on a screen that is blank, and nods, because it is in order, and she is relieved.', who: TAREN },
+          { say: 'Release is in order. The complaint is dismissed. Sir, you will come with me and explain why you lodged it.', who: VOS },
+          { say: 'The grey coat looks at you, not at her, and something that is not an expression passes over his face. He goes with her. He could not have refused without becoming something other than polite.' },
+        ] },
+        { if: ['bonded-hull'], then: [
+          { say: 'Corin puts a Trader bond on the desk, stamped and countersigned and nearly genuine. Vos reads it twice. Comporellon respects paper.' },
+          { say: 'A bond is acceptable pending review. The hull is released to bond. Sir, your complaint is noted and will be heard in forty days.', who: VOS },
+          { say: 'Forty days. He inclines his head as if that were reasonable. Perhaps to him it is.' },
+        ] },
+        { if: ['invoked-treaty'], then: [
+          { say: 'Ilen stands up very straight and says the words in the voice the Encyclopedia uses for footnotes. The Kestrel is a Foundation hull under a Trader house. Seizure is an act of war under the Treaty of Kalgan, article nine.' },
+          { say: 'Vos does not know article nine. Neither does Ilen. Vos knows what the word war costs on Comporellon, and lets go of the order like a hot plate.' },
+          { say: 'The complaint is referred upward. The hull is released pending referral. Leave the system within the hour.', who: VOS },
+        ] },
+        { say: 'Aurora is empty. Solaria is not. Be careful which empty you choose, pilot. And do not let her go to the one with no name. That is not a threat. It is the only advice I am permitted to give.', who: GREY },
+        { say: 'Deniador has been very quiet. As the door cycles behind them he puts a thin hand on Ilen\'s case.' },
+        { say: 'I showed you a document. The document answered. Please do not write to me again.', who: DENIADOR },
+        { enter: 'space' },
+        { say: 'Within the hour, as instructed. Comporellon drops away grey and cold and glad to see you go. Ahead, three jumps out, is a sun called Tau Ceti, and a world that was once the greatest in the Galaxy.' },
+        { objective: 'Reach Aurora, the Dawn World. Select Aurora on the chart.' },
+        { unlock: ['aurora', 'solaria', 'melpomenia'] },
+      ],
+    },
+    // ---------------------------------------------------------------- Chapter 6 (opening)
+    {
+      id: 'ch6-arrive',
+      trigger: { type: 'arrive', world: 'aurora' },
+      steps: [
+        { chapter: 'Chapter Six', sub: 'Aurora' },
+        { say: 'Aurora. The World of the Dawn. First and greatest of the Fifty, where men lived three centuries each with a hundred robots to a household. Now a green world under Tau Ceti with no lights on the night side, and nothing on the comms but wind.' },
+        { journal: 'Aurora. Chapter Six continues in the next build.' },
+        { objective: 'Chapter Six continues in the next build. Explore freely.' },
+        { end: 'End of the current build. Chapter Six, Aurora, continues next.' },
       ],
     },
   ],

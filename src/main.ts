@@ -159,7 +159,7 @@ function leaveCity(): void {
   view = 'space';
 }
 let interiorLoading = false;
-const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen' };
+const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault' };
 let lastLandmark: string | null = null;
 async function enterInterior(name = 'cantina'): Promise<void> {
   if ((view === 'interior' && interior?.sceneName === name) || interiorLoading) return;
@@ -188,7 +188,7 @@ function leaveInterior(): void {
 }
 async function enterPlace(place: Place): Promise<void> {
   dialogue.hide();
-  if (place === 'cantina' || place === 'archive' || place === 'library' || place === 'sacratorium') await enterInterior(place);
+  if (place !== 'space' && place !== 'city') await enterInterior(place);
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
@@ -201,6 +201,8 @@ function toggleLanding(): void {
   if (world.id === 'trantor') enterCity();
   else if (world.id === 'radole') void enterInterior('cantina');
   else if (world.id === 'siwenna') void enterInterior('archive');
+  else if (world.id === 'sayshell') void enterInterior('terrace');
+  else if (world.id === 'comporellon') void enterInterior('vault');
   else hud.showMessage('No landing site is charted here yet.', 3000);
 }
 dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };
@@ -536,7 +538,7 @@ function frame(): void {
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    const landing = world.id === 'trantor' || world.id === 'radole' || world.id === 'siwenna';
+    const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon'].includes(world.id);
     if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 

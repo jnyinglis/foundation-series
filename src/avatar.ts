@@ -28,6 +28,10 @@ export const AVATAR_FILES: Record<string, string> = {
   'DIRA VELM': 'dira',
   'SUNMASTER TWENTY-ONE': 'sunmaster',
   STATUE: 'statue',
+  'VASK OREN': 'vask',
+  QUINTESETZ: 'quintesetz',
+  'ALDO DENIADOR': 'deniador',
+  'CAPTAIN VOS': 'vos',
 };
 
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.
