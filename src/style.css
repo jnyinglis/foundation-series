@@ -156,3 +156,9 @@ body.map-open .bottom-left, body.map-open .top-right, body.map-open .reticle, bo
 .sound-prompt { position: fixed; left: 50%; top: 28%; transform: translateX(-50%); padding: 12px 18px; background: rgba(255,193,77,0.12); border: 1px solid var(--amber); color: var(--amber); font: inherit; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; display: none; z-index: 7; }
 .sound-prompt.show { display: block; animation: pulse 1s infinite alternate; }
 .debug { position: fixed; left: 0; right: 0; bottom: 0; padding: 6px 10px; background: rgba(0,0,0,0.75); color: #9fe; font: 11px var(--mono); z-index: 8; white-space: pre-wrap; }
+
+.dlg-portrait { position: absolute; left: -1px; bottom: -1px; width: 150px; height: 200px; overflow: hidden; border: 1px solid var(--line); background: #060a12; display: none; }
+.dlg-portrait.show { display: block; }
+.dlg-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85) contrast(1.05); }
+.dialogue { padding-left: 26px; }
+.dialogue:has(.dlg-portrait.show) { padding-left: 176px; min-height: 200px; }

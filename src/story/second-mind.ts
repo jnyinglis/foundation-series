@@ -128,6 +128,7 @@ export const SECOND_MIND: Story = {
       trigger: { type: 'orbit', world: 'radole' },
       steps: [
         { say: 'Twilight City hangs from the cliffs at the edge of the ice. You dock in a cavern that smells of fuel and cold. The cantina is the only warm room on the planet.' },
+        { enter: 'cantina' },
         { say: 'A woman in a Trader jacket with the patches cut off puts her glass down at your table before you can object.' },
         { say: 'Corin Pellis. I had a ship until Tuesday. Kalganian lenders have it now. You are the only hull in this port that is not a lender\'s, so I am going to make you an offer.', who: CORIN },
         { say: 'You are going into the old Imperial frontier. I know, because nobody comes to Radole to go anywhere else. The route through Horleggor and Arcturus is not on the Foundation charts. It is in my head.', who: CORIN },
@@ -153,6 +154,7 @@ export const SECOND_MIND: Story = {
         { say: 'Siwenna, then. The old Imperial archive. If the index came from anywhere, it came from there.', who: ILEN },
         { objective: 'Reach Siwenna by way of Horleggor and Arcturus. Select Siwenna on the chart; the route plots itself.' },
         { unlock: ['horleggor', 'arcturus', 'siwenna'] },
+        { enter: 'space' },
       ],
     },
     {

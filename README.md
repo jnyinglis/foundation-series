@@ -46,6 +46,8 @@ journal entries, unlocked worlds, crew, chapter cards, strain, credits and fuel.
 | J | Jump to the selected system |
 | I | World information |
 | K | Journal (story mode) |
+| L | Land, or return to orbit (Trantor, Radole) |
+| V | Voice on or off |
 | Space, 1-3 | Advance dialogue, choose |
 | H | Controls panel |
 | Esc | Release the mouse / close panels |
@@ -69,6 +71,27 @@ the regions, placed on a plausible galactic map:
 
 Each world has a type (terrestrial, lush, ocean, desert, ice, barren, or metal for
 Trantor), a seed, a star, and a short lore entry. See `src/data/worlds.ts`.
+
+## Places
+
+Press L in orbit to land where a site is charted. Trantor opens an atmospheric
+flight over the world-city: tens of thousands of instanced towers, lit windows,
+traffic lanes and fog, all procedural. Radole opens the Twilight City cantina, a
+walkable interior with stylised characters built from primitives. In the story,
+chapter two moves into the cantina for the meeting with Corin. Characters turn
+to the speaker, gesture, and move their mouths to the voice clip. A glTF avatar
+can replace a procedural figure later through the same `Figure` interface.
+
+## Portraits
+
+Each speaking character has a painted portrait beside the dialogue, generated
+once with OpenAI image generation:
+
+```bash
+npm run portraits        # writes public/portraits/<key>.webp
+```
+
+Prompts and the shared style live in `src/story/voice.ts`.
 
 ## Voice
 
@@ -100,7 +123,9 @@ src/audio.ts           procedural ambient sound (Web Audio)
 src/shaders/           GLSL: noise, planet, clouds, atmosphere, sun, skybox, hyperspace jump
 src/data/worlds.ts     the named worlds
 src/story/             story format, engine, and scripts
-src/dialogue.ts        dialogue panel and chapter cards
+src/dialogue.ts        dialogue panel, portraits and chapter cards
+src/city.ts            procedural Trantor flythrough
+src/interior.ts        walkable interiors and procedural characters
 scripts/connectivity.ts  checks that every world is reachable by jump chains
 ```
 

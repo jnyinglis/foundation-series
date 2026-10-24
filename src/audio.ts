@@ -6,6 +6,8 @@ export class AudioEngine {
   private engineFilter: BiquadFilterNode | null = null;
   private master: GainNode | null = null;
   private voiceBus: GainNode | null = null;
+  private analyser: AnalyserNode | null = null;
+  private levelBuf: Uint8Array<ArrayBuffer> | null = null;
 
   private unmuteEl: HTMLAudioElement | null = null;
 
@@ -44,6 +46,10 @@ export class AudioEngine {
     this.voiceBus = ctx.createGain();
     this.voiceBus.gain.value = 1.0;
     this.voiceBus.connect(ctx.destination);
+    this.analyser = ctx.createAnalyser();
+    this.analyser.fftSize = 512;
+    this.levelBuf = new Uint8Array(new ArrayBuffer(this.analyser.fftSize));
+    this.voiceBus.connect(this.analyser);
 
     // deep drone
     const droneGain = ctx.createGain();
@@ -130,6 +136,15 @@ export class AudioEngine {
     o2.connect(g2).connect(this.master);
     o2.start(now);
     o2.stop(now + duration + 1.5);
+  }
+
+  /** Current voice loudness, 0..1, for lip sync. */
+  voiceLevel(): number {
+    if (!this.analyser || !this.levelBuf) return 0;
+    this.analyser.getByteTimeDomainData(this.levelBuf);
+    let sum = 0;
+    for (let i = 0; i < this.levelBuf.length; i++) { const v = (this.levelBuf[i] - 128) / 128; sum += v * v; }
+    return Math.min(1, Math.sqrt(sum / this.levelBuf.length) * 3);
   }
 
   decode(data: ArrayBuffer): Promise<AudioBuffer> {

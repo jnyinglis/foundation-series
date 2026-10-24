@@ -17,6 +17,8 @@ import { VoicePlayer } from './voice';
 import { StoryEngine } from './story/engine';
 import { newStoryState, type StoryState } from './story/types';
 import { SECOND_MIND } from './story/second-mind';
+import { TrantorCity } from './city';
+import { Interior } from './interior';
 
 type Mode = 'explore' | 'story';
 
@@ -96,6 +98,10 @@ let jumpTarget: World | null = null;
 let started = false;
 let orbiting = false;
 let storyLock = false;
+type View = 'space' | 'city' | 'interior';
+let view: View = 'space';
+let city: TrantorCity | null = null;
+let interior: Interior | null = null;
 
 function placeShip(extra = 0): void {
   const side = new THREE.Vector3().crossVectors(system.sunDir, new THREE.Vector3(0, 1, 0)).normalize();
@@ -125,11 +131,72 @@ function dateText(): string {
 }
 
 function shipMayFly(): boolean {
-  return started && !mapOpen && !jumping && !storyLock && !dialogue.open;
+  return started && !mapOpen && !jumping && !storyLock && !dialogue.open && view !== 'interior';
 }
 
+// ---------------------------------------------------------------- places: orbit, city, interior
+function enterCity(): void {
+  if (view === 'city') return;
+  leaveInterior();
+  city = new TrantorCity();
+  renderPass.scene = city.scene;
+  const pose = city.startPose();
+  ship.reset(pose.position, pose.lookAt);
+  ship.speedScale = 0.22;
+  ship.throttle = 0.35;
+  view = 'city';
+  hud.setMarker(0, 0, false, false, 0, '');
+  hud.showMessage('Trantor. Atmospheric flight. Press L to return to orbit.', 5000);
+  audio.blip(1200);
+}
+function leaveCity(): void {
+  if (view !== 'city') return;
+  city?.dispose();
+  city = null;
+  ship.speedScale = 1;
+  renderPass.scene = system.scene;
+  placeShip();
+  view = 'space';
+}
+function enterInterior(): void {
+  if (view === 'interior') return;
+  leaveCity();
+  interior = new Interior();
+  renderPass.scene = interior.scene;
+  view = 'interior';
+  ship.releasePointer();
+  hud.setMarker(0, 0, false, false, 0, '');
+  hud.showMessage('Twilight City cantina. Click to look, WASD to walk. L returns to the ship.', 5000);
+  audio.blip(900);
+}
+function leaveInterior(): void {
+  if (view !== 'interior') return;
+  interior?.dispose();
+  interior = null;
+  renderPass.scene = system.scene;
+  camera.fov = 62; camera.updateProjectionMatrix();
+  view = 'space';
+}
+async function enterPlace(place: 'space' | 'cantina' | 'city'): Promise<void> {
+  dialogue.hide();
+  if (place === 'cantina') enterInterior();
+  else if (place === 'city') enterCity();
+  else { leaveCity(); leaveInterior(); }
+  await new Promise((r) => setTimeout(r, 600));
+}
+/** L: land or return. Explore mode lets you visit any charted landing site. */
+function toggleLanding(): void {
+  if (jumping || storyLock || mapOpen) return;
+  if (view !== 'space') { leaveCity(); leaveInterior(); hud.showMessage(`Back in orbit over ${world.name}.`, 3000); return; }
+  if (!orbiting) { hud.showMessage('Enter orbit first.', 2500); return; }
+  if (world.id === 'trantor') enterCity();
+  else if (world.id === 'radole') enterInterior();
+  else hud.showMessage('No landing site is charted here yet.', 3000);
+}
+dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };
+
 function openMap(): void {
-  if (jumping || storyLock) return;
+  if (jumping || storyLock || view !== 'space') return;
   mapOpen = true;
   ship.enabled = false;
   ship.releasePointer();
@@ -202,6 +269,7 @@ window.addEventListener('keydown', (e) => {
     case 'KeyJ': if (map.selected) beginJump(); break;
     case 'KeyI': if (!mapOpen) { hud.infoOpen ? hud.hideInfo() : hud.showInfo(world); } break;
     case 'KeyH': hud.toggleHelp(); break;
+    case 'KeyL': toggleLanding(); break;
     case 'KeyV': hud.showMessage(voice.toggle() ? 'Voice on.' : 'Voice off.', 2000); break;
     case 'KeyK': if (state.story) { hud.journalOpen ? hud.hideJournal() : hud.showJournal(state.story.journal, state.story.crew, state.story.objective); } break;
   }
@@ -244,6 +312,7 @@ function attachStory(): void {
       else { dialogue.hide(); ship.enabled = shipMayFly(); }
     },
     end: (text) => hud.showMessage(text, 8000),
+    enter: (place) => enterPlace(place),
     save: () => saveState(state),
   });
   map.allowed = new Set(st.unlocked);
@@ -304,6 +373,8 @@ btnStoryNew.addEventListener('click', (e) => { e.stopPropagation(); start('story
 renderPass.scene = system.scene;
 hud.setSystem(world);
 placeShip();
+
+canvas.addEventListener('click', () => { if (view === 'interior' && !storyLock && !dialogue.open && !document.pointerLockElement) canvas.requestPointerLock(); });
 
 // ---------------------------------------------------------------- sound prompt and debug readout
 const soundPrompt = document.getElementById('sound-prompt')!;
@@ -366,6 +437,26 @@ function frame(): void {
 
   if (mapOpen) {
     map.update(w, h);
+  } else if (view === 'city' && city) {
+    ship.enabled = shipMayFly();
+    ship.update(dt, 0);
+    city.constrain(ship);
+    camera.position.copy(ship.position);
+    camera.quaternion.copy(ship.quaternion);
+    camera.updateMatrixWorld();
+    city.update(dt);
+    hud.setFlight(ship.speed, ship.throttle, ship.boost, ship.position.y / 10, state.fuel, FUEL_CAPACITY, state.credits, dateText());
+    audio.setThrottle(ship.throttle, ship.boost);
+    hud.setStatus(storyLock ? 'STORY' : ship.isLocked ? 'TRANTOR · ATMOSPHERIC FLIGHT · L TO RETURN' : 'CLICK TO FLY · L TO RETURN TO ORBIT', '');
+  } else if (view === 'interior' && interior) {
+    ship.update(dt, 0);
+    interior.inputEnabled = !storyLock && !dialogue.open;
+    interior.setMouthLevel(audio.voiceLevel());
+    interior.update(dt, timeAcc, camera);
+    camera.updateMatrixWorld();
+    audio.setThrottle(0, false);
+    hud.setFlight(0, 0, false, 0, state.fuel, FUEL_CAPACITY, state.credits, dateText());
+    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? 'TWILIGHT CITY · L TO RETURN' : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
   } else {
     ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);
@@ -413,7 +504,8 @@ function frame(): void {
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
+    const landing = world.id === 'trantor' || world.id === 'radole';
+    if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 
   if (started && !jumping) adaptQuality(dt);
@@ -431,4 +523,7 @@ frame();
   get system() { return system; },
   get state() { return state; },
   get story() { return story; },
+  get view() { return view; },
+  get interior() { return interior; },
+  enterCity, enterInterior,
 };

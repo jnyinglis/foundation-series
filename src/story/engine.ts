@@ -14,6 +14,7 @@ export interface StoryHooks {
   crew(name: string): void;
   lock(locked: boolean): void;
   end(text: string): void;
+  enter(place: 'space' | 'cantina' | 'city'): Promise<void>;
   save(): void;
 }
 
@@ -131,6 +132,8 @@ export class StoryEngine {
         return step.goto;
       } else if ('message' in step) {
         this.hooks.message(step.message);
+      } else if ('enter' in step) {
+        await this.hooks.enter(step.enter);
       } else if ('end' in step) {
         this.state.ended = true;
         this.hooks.end(step.end);

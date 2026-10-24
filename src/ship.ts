@@ -9,6 +9,8 @@ export class Ship {
   speed = 0;
   readonly maxSpeed = 700;
   readonly boostSpeed = 3200;
+  /** Scales top speed, for atmospheric flight. */
+  speedScale = 1;
   private keys = new Set<string>();
   private mouseDX = 0;
   private mouseDY = 0;
@@ -59,7 +61,7 @@ export class Ship {
   }
 
   update(dt: number, planetRadius: number): void {
-    if (!this.enabled) return;
+    if (!this.enabled) { this.mouseDX = 0; this.mouseDY = 0; return; }
     const k = this.keys;
     // throttle
     if (k.has('KeyW')) this.throttle = Math.min(1, this.throttle + dt * 0.6);
@@ -92,16 +94,16 @@ export class Ship {
     this.quaternion.multiply(q).normalize();
 
     // velocity
-    const target = this.throttle * (this.boost ? this.boostSpeed : this.maxSpeed);
+    const target = this.throttle * (this.boost ? this.boostSpeed : this.maxSpeed) * this.speedScale;
     this.speed += (target - this.speed) * (1 - Math.exp(-dt * (this.boost ? 1.2 : 2.5)));
     const fwd = this.forward();
     this.velocity.copy(fwd).multiplyScalar(this.speed);
     this.position.addScaledVector(this.velocity, dt);
 
-    // keep out of the planet
+    // keep out of the planet (planetRadius 0 = no planet)
     const minDist = planetRadius * 1.14;
     const d = this.position.length();
-    if (d < minDist) {
+    if (planetRadius > 0 && d < minDist) {
       this.position.multiplyScalar(minDist / d);
       this.speed *= 0.2;
       this.throttle = Math.min(this.throttle, 0.1);

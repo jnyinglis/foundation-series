@@ -34,6 +34,7 @@ export type Step =
   | { fuel: number }
   | { goto: string }
   | { message: string }
+  | { enter: 'space' | 'cantina' | 'city' }
   | { end: string };
 
 export interface Scene {

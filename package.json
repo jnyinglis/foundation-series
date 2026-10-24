@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "voice": "tsx scripts/voice.ts",
+    "portraits": "tsx scripts/portraits.ts",
     "connectivity": "tsx scripts/connectivity.ts"
   },
   "dependencies": {

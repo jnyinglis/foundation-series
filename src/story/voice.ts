@@ -12,7 +12,11 @@ export interface CastEntry {
   fx: VoiceFx;
   /** Browser fallback: preferred voice names, pitch and rate. */
   fallback: { names: string[]; pitch: number; rate: number };
+  /** Portrait file key and image prompt. Narration has none. */
+  portrait?: { key: string; prompt: string };
 }
+
+export const PORTRAIT_STYLE = 'Painterly science-fiction character portrait, head and shoulders, three-quarter view, looking slightly off camera. Muted palette of steel blue, slate and amber. Soft directional light from the left, dark atmospheric background with faint instrument glow. Serious, literary tone, like a book cover for a classic space novel. No text, no watermark, no frame.';
 
 export const NARRATOR = '';
 
@@ -28,24 +32,28 @@ export const CAST: Record<string, CastEntry> = {
     instructions: 'A thoughtful android speaking to itself. Calm, precise, even, gentle. Never raises the voice. Slight detachment, as if observing its own feelings from a short distance.',
     fx: 'robot',
     fallback: { names: ['Alex', 'Fred', 'Google US English'], pitch: 0.9, rate: 0.95 },
+    portrait: { key: 'taren', prompt: 'A humanoid robot that passes for a man of about forty: calm, precise, symmetrical face, short dark hair, very still grey eyes, a plain dark pilot jacket with a small Trader house patch. Only a faint seam at the temple and an unnatural evenness hint that he is not human.' },
   },
   'ILEN SARVO': {
     voice: 'coral',
     instructions: 'A guarded, intelligent archivist in her thirties. Tired, controlled, with quiet urgency underneath. Dry and exact.',
     fx: 'plain',
     fallback: { names: ['Samantha', 'Karen', 'Moira', 'Google UK English Female'], pitch: 1.0, rate: 1.0 },
+    portrait: { key: 'ilen', prompt: 'A guarded, intelligent archivist in her early thirties, tired eyes, dark hair tied back, a high-collared grey scholar\'s coat with a small Encyclopedia Galactica pin, holding the strap of a sealed archive case. Controlled, watchful expression.' },
   },
   'CORIN PELLIS': {
     voice: 'sage',
     instructions: 'A brisk, confident trader pilot. Dry humour, a little amused, fast and sure. Warm underneath.',
     fx: 'plain',
     fallback: { names: ['Tessa', 'Fiona', 'Victoria', 'Google UK English Female'], pitch: 1.05, rate: 1.08 },
+    portrait: { key: 'corin', prompt: 'A brisk, confident trader pilot in her late twenties, weathered skin, cropped sun-bleached hair, a worn brown Trader flight jacket with the patches cut off, a half-smile, dry amusement in her eyes. A cold cavern port with fuel lights behind her.' },
   },
   COMMS: {
     voice: 'onyx',
     instructions: 'A flat, clipped port-authority radio operator. Bored, procedural, no emotion. Short pauses between clauses.',
     fx: 'radio',
     fallback: { names: ['Daniel', 'Alex'], pitch: 0.85, rate: 1.1 },
+    portrait: { key: 'comms', prompt: 'A port authority communications console: a dark panel with an amber waveform display, a worn microphone grille, status lamps and a stencilled Terminus Port Authority emblem. No people.' },
   },
 };
 

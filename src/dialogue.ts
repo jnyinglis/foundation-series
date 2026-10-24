@@ -1,5 +1,6 @@
 import type { Choice } from './story/types';
 import type { VoicePlayer } from './voice';
+import { castFor } from './story/voice';
 
 function el<T extends HTMLElement>(id: string): T {
   const e = document.getElementById(id);
@@ -15,11 +16,16 @@ export class Dialogue {
   private hint = el('dlg-hint');
   private choices = el('dlg-choices');
   private chapterEl = el('chapter');
+  private portrait = el<HTMLImageElement>('dlg-portrait');
+  private portraitWrap = el('dlg-portrait-wrap');
+  private missingPortraits = new Set<string>();
   private advance: (() => void) | null = null;
   private typing = false;
   private full = '';
   private timer = 0;
   voice: VoicePlayer | null = null;
+  /** Called with the speaker name when a line starts, and null when the panel hides. */
+  onSpeaker: ((who: string | null) => void) | null = null;
 
   constructor() {
     this.panel.addEventListener('click', () => this.onAdvance());
@@ -48,7 +54,19 @@ export class Dialogue {
     this.choices.innerHTML = '';
     this.speaker.textContent = who;
     this.speaker.style.display = who ? 'block' : 'none';
+    this.onSpeaker?.(who || null);
     this.panel.classList.toggle('narration', !who);
+    const key = castFor(who).portrait?.key;
+    if (who && key && !this.missingPortraits.has(key)) {
+      const src = `${import.meta.env.BASE_URL}portraits/${key}.webp`;
+      if (!this.portrait.src.endsWith(src.replace(/^\./, ''))) {
+        this.portrait.onerror = () => { this.missingPortraits.add(key); this.portraitWrap.classList.remove('show'); };
+        this.portrait.src = src;
+      }
+      this.portraitWrap.classList.add('show');
+    } else {
+      this.portraitWrap.classList.remove('show');
+    }
     this.full = text;
     this.text.textContent = '';
     this.hint.style.visibility = 'hidden';
@@ -105,6 +123,7 @@ export class Dialogue {
     this.panel.classList.remove('show');
     this.choices.innerHTML = '';
     this.voice?.stop();
+    this.onSpeaker?.(null);
   }
 
   chapter(title: string, sub: string): Promise<void> {
