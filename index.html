@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Foundation</title>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <div class="corner top-left">
+      <div id="sys-name" class="sys-name">TERMINUS</div>
+      <div id="sys-region" class="sys-region"></div>
+      <div id="status" class="status"></div>
+    </div>
+    <div class="corner top-right">
+      <div class="row"><span class="k">DATE</span><span id="date" class="v"></span></div>
+      <div class="row"><span class="k">CREDITS</span><span id="credits" class="v"></span></div>
+      <div class="row"><span class="k">FUEL</span><span class="bar"><span id="fuel-fill" class="fill fuel"></span></span><span id="fuel-text" class="v small"></span></div>
+    </div>
+    <div class="corner bottom-left">
+      <div class="row"><span class="k">THR</span><span class="bar"><span id="throttle-fill" class="fill"></span></span></div>
+      <div class="row"><span class="k">VEL</span><span id="speed" class="v mono"></span></div>
+      <div class="row"><span class="k">ALT</span><span id="dist" class="v mono"></span></div>
+    </div>
+    <div class="reticle"></div>
+    <div id="target-marker" class="marker"><div class="marker-box"></div><div class="marker-arrow"></div><div id="target-label" class="marker-label"></div></div>
+    <div id="message" class="message"></div>
+    <div id="info" class="info"></div>
+    <div id="help" class="help">
+      <h3>CONTROLS</h3>
+      <table>
+        <tr><td>Click</td><td>capture the mouse and fly</td></tr>
+        <tr><td>Mouse / Arrows</td><td>pitch and yaw</td></tr>
+        <tr><td>Q E or A D</td><td>roll</td></tr>
+        <tr><td>W S</td><td>throttle up / down</td></tr>
+        <tr><td>Shift</td><td>boost</td></tr>
+        <tr><td>X</td><td>cut throttle</td></tr>
+        <tr><td>M</td><td>galaxy map</td></tr>
+        <tr><td>J</td><td>jump to selected system</td></tr>
+        <tr><td>I</td><td>world information</td></tr>
+        <tr><td>H</td><td>this panel</td></tr>
+        <tr><td>Esc</td><td>release the mouse / close</td></tr>
+      </table>
+      <p>Fly to within orbit range of a planet to refuel.</p>
+    </div>
+  </div>
+
+  <div id="map-labels"></div>
+  <div id="map-panel" class="map-panel">
+    <div class="map-head">GALACTIC CHART</div>
+    <div id="map-target" class="map-target"></div>
+    <button id="jump-btn" class="jump-btn" disabled>SELECT A DESTINATION</button>
+    <div id="map-hint" class="map-hint"></div>
+    <div class="map-legend">
+      <span><i class="dot cur"></i>current</span>
+      <span><i class="dot range"></i>in range</span>
+      <span><i class="dot far"></i>beyond range</span>
+    </div>
+    <div class="map-close">M or Esc to close</div>
+  </div>
+
+  <div id="intro">
+    <div class="intro-inner">
+      <div class="intro-kicker">AN ELITE-STYLE VOYAGE THROUGH</div>
+      <h1>FOUNDATION</h1>
+      <div class="intro-sub">THE WORLDS OF ISAAC ASIMOV</div>
+      <div class="intro-quote">"The fall of Empire, gentlemen, is a massive thing, however, and not easily fought."</div>
+      <div class="intro-cta">CLICK OR PRESS ANY KEY TO BEGIN</div>
+      <div class="intro-foot">A non-commercial fan project. Headphones recommended.</div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
