@@ -162,3 +162,16 @@ body.map-open .bottom-left, body.map-open .top-right, body.map-open .reticle, bo
 .dlg-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85) contrast(1.05); }
 .dialogue { padding-left: 26px; }
 .dialogue:has(.dlg-portrait.show) { padding-left: 176px; min-height: 200px; }
+
+.contracts { overflow: auto; max-height: 40vh; }
+.contract { border: 1px solid var(--line); padding: 10px 12px; margin-bottom: 8px; background: rgba(63,212,255,0.04); }
+.contract.done { opacity: 0.5; }
+.contract.active { border-color: var(--amber); }
+.contract-head { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+.contract-title { color: #fff; }
+.contract-world { color: var(--cyan); }
+.contract p { font-size: 12px; line-height: 1.5; color: #cfdcea; margin: 6px 0; }
+.contract-foot { display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 0.12em; color: var(--dim); text-transform: uppercase; }
+.contract-btn { padding: 5px 10px; background: transparent; border: 1px solid var(--green); color: var(--green); font: inherit; font-size: 10px; letter-spacing: 0.2em; cursor: pointer; }
+.contract-btn:hover { background: rgba(125,255,176,0.12); }
+.contract-status { color: var(--amber); }

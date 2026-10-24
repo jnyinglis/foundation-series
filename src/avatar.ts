@@ -36,6 +36,8 @@ export const AVATAR_FILES: Record<string, string> = {
   WRECK: 'statue',
   SANYA: 'sanya',
   DANEEL: 'daneel',
+  'RAL GOROV': 'gorov',
+  'ELDER PHERL': 'pherl',
 };
 
 /** Robots and wrecks reuse the statue file with a material override. */

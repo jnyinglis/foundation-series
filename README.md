@@ -72,6 +72,15 @@ the regions, placed on a plausible galactic map:
 Each world has a type (terrestrial, lush, ocean, desert, ice, barren, or metal for
 Trantor), a seed, a star, and a short lore entry. See `src/data/worlds.ts`.
 
+## Side adventures
+
+The chart has a contracts board. Accept a contract and its scenes fire when you
+reach its world, in Explore mode or between chapters of the story. Side
+adventures are story files like the main one, listed in `src/story/index.ts`,
+each with a `contract` block naming its world, summary, reward and any flags it
+requires. They reuse the rooms and characters, can swap the cast of a room, and
+can set flags the main story reads. The first is The Askone Taboo.
+
 ## Places
 
 Press L in orbit to land where a site is charted. Siwenna opens the dark Imperial

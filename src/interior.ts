@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Avatar, avatarFileFor, type Actor } from './avatar';
+import type { EnterOptions } from './story/types';
 
 // Walkable interiors with stylised procedural characters. The first interior is
 // the cantina of Twilight City on Radole. Characters are built from primitives so
@@ -172,7 +173,7 @@ export class Interior {
   /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
   baked = false;
 
-  constructor(readonly sceneName: string = 'cantina') {
+  constructor(readonly sceneName: string = 'cantina', private opts: EnterOptions = {}) {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     document.addEventListener('mousemove', this.onMouse);
@@ -188,7 +189,10 @@ export class Interior {
       ]);
       this.installBaked(gltf.scene, meta);
       this.baked = true;
-      await this.placeActors(meta.figures);
+      let figures = meta.figures;
+      if (this.opts.cast) figures = figures.filter((f) => this.opts.cast!.includes(f.name));
+      if (this.opts.extra) figures = [...figures, ...this.opts.extra];
+      await this.placeActors(figures);
     } catch {
       this.buildCantina();
     }

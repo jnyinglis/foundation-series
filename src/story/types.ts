@@ -39,7 +39,8 @@ export type Step =
   | { fuel: number }
   | { goto: string }
   | { message: string }
-  | { enter: Place }
+  | { enter: Place; label?: string; cast?: string[]; extra?: FigureSpec[] }
+  | { complete: string }
   | { end: string };
 
 export interface Scene {
@@ -50,10 +51,25 @@ export interface Scene {
   repeat?: boolean;
 }
 
+export interface FigureSpec { name: string; pos: number[]; yaw: number; seated: boolean }
+
+export interface EnterOptions { label?: string; cast?: string[]; extra?: FigureSpec[] }
+
+export interface Contract {
+  /** World where the contract plays out. */
+  world: string;
+  summary: string;
+  reward: string;
+  /** Flags that must be set before the contract is offered. */
+  requires?: string[];
+}
+
 export interface Story {
   id: string;
   title: string;
   subtitle: string;
+  /** Present on side adventures offered from the contracts board. */
+  contract?: Contract;
   startWorld: string;
   /** Foundation Era year at day zero. */
   baseYear: number;
@@ -71,8 +87,11 @@ export interface StoryState {
   journal: string[];
   unlocked: string[];
   ended: boolean;
+  /** Accepted side adventures, by story id. */
+  contracts: string[];
+  completed: string[];
 }
 
-export function newStoryState(story: Story): StoryState {
-  return { flags: [], done: [], strain: 0, crew: ['Ilen Sarvo'], objective: '', journal: [], unlocked: [...story.unlocked], ended: false };
+export function newStoryState(story: Story | null): StoryState {
+  return { flags: [], done: [], strain: 0, crew: story ? ['Ilen Sarvo'] : [], objective: '', journal: [], unlocked: story ? [...story.unlocked] : [], ended: false, contracts: [], completed: [] };
 }

@@ -62,7 +62,7 @@ CHARACTERS = {
     'sunmaster': dict(
         macro=dict(gender=0.95, age=0.85, muscle=0.4, weight=0.42, proportions=0.5, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.8, 0.15, 0.05)),
         skin='old_caucasian_male.mhmat', hair=None, eyebrows=None, eyelashes='eyelashes01.mhclo',
-        clothes=['donitz_monk_robe_hood_down.mhclo'],
+        clothes=['donitz_monk_robe.mhclo', 'donitz_monk_robe_hood_down.mhclo', 'shoes02.mhclo'],
     ),
     'statue': dict(
         macro=dict(gender=0.9, age=0.45, muscle=0.6, weight=0.5, proportions=0.7, height=0.7, cupsize=0.5, firmness=0.5, race=race(0.34, 0.33, 0.33)),
@@ -103,6 +103,16 @@ CHARACTERS = {
         macro=dict(gender=0.95, age=0.42, muscle=0.55, weight=0.45, proportions=0.85, height=0.7, cupsize=0.5, firmness=0.5, race=race(0.8, 0.15, 0.05)),
         skin='young_caucasian_male2.mhmat', hair='short01.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
         clothes=['male_elegantsuit01.mhclo', 'shoes01.mhclo'],
+    ),
+    'gorov': dict(
+        macro=dict(gender=0.95, age=0.52, muscle=0.45, weight=0.38, proportions=0.55, height=0.58, cupsize=0.5, firmness=0.5, race=race(0.7, 0.2, 0.1)),
+        skin='middleage_caucasian_male.mhmat', hair='short03.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_casualsuit02.mhclo', 'culturalibre_male_boots.mhclo'],
+    ),
+    'pherl': dict(
+        macro=dict(gender=0.95, age=0.82, muscle=0.35, weight=0.62, proportions=0.45, height=0.5, cupsize=0.5, firmness=0.4, race=race(0.5, 0.4, 0.1)),
+        skin='old_asian_male.mhmat', hair=None, eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['donitz_monk_robe.mhclo', 'donitz_monk_robe_hood_down.mhclo', 'shoes02.mhclo'],
     ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),

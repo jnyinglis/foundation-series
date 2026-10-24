@@ -3,7 +3,7 @@
 // Clips go to public/voice/<id>.mp3 with a manifest. Existing clips are kept.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { SECOND_MIND } from '../src/story/second-mind';
+import { MAIN_STORY, SIDE_STORIES } from '../src/story/index';
 import { castFor, voiceId } from '../src/story/voice';
 import type { Step } from '../src/story/types';
 
@@ -31,7 +31,7 @@ function collect(steps: Step[]): void {
     else if ('if' in s) { collect(s.then); if (s.else) collect(s.else); }
   }
 }
-for (const scene of SECOND_MIND.scenes) collect(scene.steps);
+for (const st of [MAIN_STORY, ...SIDE_STORIES]) for (const scene of st.scenes) collect(scene.steps);
 
 const outDir = join(process.cwd(), 'public', 'voice');
 mkdirSync(outDir, { recursive: true });
@@ -61,7 +61,7 @@ async function main(): Promise<void> {
   }));
   const manifest: Record<string, { who: string; chars: number }> = {};
   for (const l of lines.values()) if (existsSync(join(outDir, `${l.id}.mp3`))) manifest[l.id] = { who: l.who, chars: l.text.length };
-  writeFileSync(join(outDir, 'manifest.json'), JSON.stringify({ story: SECOND_MIND.id, lines: manifest }, null, 0));
+  writeFileSync(join(outDir, 'manifest.json'), JSON.stringify({ story: MAIN_STORY.id, lines: manifest }, null, 0));
   console.log(`Done. ${Object.keys(manifest).length} clips in public/voice. ${failed ? failed + ' failed.' : ''}`);
 }
 void main();

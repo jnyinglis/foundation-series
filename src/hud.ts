@@ -31,6 +31,7 @@ export class Hud {
   private strainFill = el<HTMLDivElement>('strain-fill');
   private journal = el('journal');
   private journalBody = el('journal-body');
+  private contracts = el('contracts');
   private msgTimer = 0;
 
   constructor() {}
@@ -144,6 +145,18 @@ export class Hud {
   get journalOpen(): boolean { return this.journal.classList.contains('show'); }
 
   onJump(cb: () => void): void { this.jumpBtn.addEventListener('click', cb); }
+
+  /** Renders the contracts board in the map panel. */
+  setContracts(items: { id: string; title: string; world: string; summary: string; reward: string; status: 'open' | 'active' | 'done' }[], onAccept: (id: string) => void): void {
+    if (!items.length) { this.contracts.innerHTML = ''; return; }
+    this.contracts.innerHTML = `<div class="info-kicker">Contracts</div>` + items.map((c) => `
+      <div class="contract ${c.status}">
+        <div class="contract-head"><span class="contract-title">${c.title}</span><span class="contract-world">${c.world}</span></div>
+        <p>${c.summary}</p>
+        <div class="contract-foot"><span class="contract-reward">${c.reward}</span>${c.status === 'open' ? `<button data-id="${c.id}" class="contract-btn">ACCEPT</button>` : `<span class="contract-status">${c.status === 'active' ? 'ACTIVE' : 'COMPLETE'}</span>`}</div>
+      </div>`).join('');
+    this.contracts.querySelectorAll<HTMLButtonElement>('.contract-btn').forEach((b) => b.addEventListener('click', () => onAccept(b.dataset.id!)));
+  }
 
   toggleHelp(): void { this.help.classList.toggle('show'); }
   hideHelp(): void { this.help.classList.remove('show'); }

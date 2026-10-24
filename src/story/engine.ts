@@ -1,4 +1,4 @@
-import type { Story, StoryState, Scene, Step, Trigger, Choice, Place } from './types';
+import type { Story, StoryState, Scene, Step, Trigger, Choice, Place, EnterOptions } from './types';
 
 export interface StoryHooks {
   say(who: string, text: string): Promise<void>;
@@ -14,7 +14,8 @@ export interface StoryHooks {
   crew(name: string): void;
   lock(locked: boolean): void;
   end(text: string): void;
-  enter(place: Place): Promise<void>;
+  enter(place: Place, opts?: EnterOptions): Promise<void>;
+  complete(storyId: string): void;
   save(): void;
 }
 
@@ -30,7 +31,24 @@ export class StoryEngine {
   private running = false;
   private queue: Trigger[] = [];
 
-  constructor(readonly story: Story, readonly state: StoryState, private hooks: StoryHooks) {}
+  stories: Story[];
+
+  constructor(stories: Story[], readonly state: StoryState, private hooks: StoryHooks) {
+    this.stories = [...stories];
+  }
+
+  addStory(story: Story): void {
+    if (!this.stories.some((s) => s.id === story.id)) this.stories.push(story);
+  }
+
+  removeStory(id: string): void {
+    this.stories = this.stories.filter((s) => s.id !== id);
+  }
+
+  private findScene(pred: (s: Scene) => boolean): Scene | undefined {
+    for (const st of this.stories) { const sc = st.scenes.find(pred); if (sc) return sc; }
+    return undefined;
+  }
 
   get busy(): boolean { return this.running; }
 
@@ -52,7 +70,7 @@ export class StoryEngine {
     try {
       while (this.queue.length) {
         const t = this.queue.shift()!;
-        const scene = this.story.scenes.find((s) => !this.state.done.includes(s.id) && triggerMatches(s.trigger, t));
+        const scene = this.findScene((s) => !this.state.done.includes(s.id) && triggerMatches(s.trigger, t));
         if (!scene) continue;
         await this.runScene(scene);
       }
@@ -69,7 +87,7 @@ export class StoryEngine {
     try {
       let next: string | null = await this.runSteps(scene.steps);
       while (next) {
-        const target = this.story.scenes.find((s) => s.id === next);
+        const target = this.findScene((s) => s.id === next);
         if (!target) break;
         if (!target.repeat) this.state.done.push(target.id);
         next = await this.runSteps(target.steps);
@@ -134,7 +152,11 @@ export class StoryEngine {
       } else if ('message' in step) {
         this.hooks.message(step.message);
       } else if ('enter' in step) {
-        await this.hooks.enter(step.enter);
+        await this.hooks.enter(step.enter, { label: step.label, cast: step.cast, extra: step.extra });
+      } else if ('complete' in step) {
+        if (!this.state.completed.includes(step.complete)) this.state.completed.push(step.complete);
+        this.state.contracts = this.state.contracts.filter((c) => c !== step.complete);
+        this.hooks.complete(step.complete);
       } else if ('end' in step) {
         this.state.ended = true;
         this.hooks.end(step.end);

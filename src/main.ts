@@ -15,8 +15,9 @@ import { JumpShader } from './shaders/jump';
 import { Dialogue } from './dialogue';
 import { VoicePlayer } from './voice';
 import { StoryEngine } from './story/engine';
-import { newStoryState, type StoryState, type Place } from './story/types';
-import { SECOND_MIND } from './story/second-mind';
+import { newStoryState, type StoryState, type Place, type EnterOptions } from './story/types';
+import { MAIN_STORY, SIDE_STORIES, storyById } from './story/index';
+const SECOND_MIND = MAIN_STORY;
 import { TrantorCity } from './city';
 import { Interior } from './interior';
 
@@ -39,14 +40,18 @@ function freshState(mode: Mode): SaveState {
   if (mode === 'story') {
     return { mode, worldId: SECOND_MIND.startWorld, fuel: FUEL_CAPACITY, credits: SECOND_MIND.startCredits, day: 0, baseYear: SECOND_MIND.baseYear, visited: [SECOND_MIND.startWorld], story: newStoryState(SECOND_MIND) };
   }
-  return { mode, worldId: START_WORLD_ID, fuel: FUEL_CAPACITY, credits: 1200, day: 0, baseYear: 50, visited: [START_WORLD_ID] };
+  return { mode, worldId: START_WORLD_ID, fuel: FUEL_CAPACITY, credits: 1200, day: 0, baseYear: 50, visited: [START_WORLD_ID], story: newStoryState(null) };
 }
 function loadState(mode: Mode): SaveState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEYS[mode]);
     if (raw) {
       const s = JSON.parse(raw) as SaveState;
-      if (WORLDS.some((w) => w.id === s.worldId)) return s;
+      if (WORLDS.some((w) => w.id === s.worldId)) {
+        if (!s.story) s.story = newStoryState(null);
+        if (!s.story.contracts) { s.story.contracts = []; s.story.completed = []; }
+        return s;
+      }
     }
   } catch { /* ignore */ }
   return null;
@@ -161,13 +166,15 @@ function leaveCity(): void {
 let interiorLoading = false;
 const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault', ruins: 'the Fastolfe estate on Aurora', estate: 'the Bander estate on Solaria', village: 'New Earth, on Alpha', moon: 'the chamber under the Moon' };
 let lastLandmark: string | null = null;
-async function enterInterior(name = 'cantina'): Promise<void> {
+let interiorLabel = '';
+async function enterInterior(name = 'cantina', opts: EnterOptions = {}): Promise<void> {
   if ((view === 'interior' && interior?.sceneName === name) || interiorLoading) return;
   leaveCity();
   leaveInterior();
   interiorLoading = true;
+  interiorLabel = opts.label ?? PLACE_NAMES[name] ?? name;
   hud.setStatus('LANDING', 'warn');
-  const next = new Interior(name);
+  const next = new Interior(name, opts);
   await next.load();
   interiorLoading = false;
   interior = next;
@@ -175,7 +182,7 @@ async function enterInterior(name = 'cantina'): Promise<void> {
   view = 'interior';
   ship.releasePointer();
   hud.setMarker(0, 0, false, false, 0, '');
-  hud.showMessage(`${PLACE_NAMES[name] ?? name}. Click to look, WASD to walk. L returns to the ship.`, 5000);
+  hud.showMessage(`${interiorLabel}. Click to look, WASD to walk. L returns to the ship.`, 5000);
   audio.blip(900);
 }
 function leaveInterior(): void {
@@ -186,9 +193,9 @@ function leaveInterior(): void {
   camera.fov = 62; camera.updateProjectionMatrix();
   view = 'space';
 }
-async function enterPlace(place: Place): Promise<void> {
+async function enterPlace(place: Place, opts: EnterOptions = {}): Promise<void> {
   dialogue.hide();
-  if (place !== 'space' && place !== 'city') await enterInterior(place);
+  if (place !== 'space' && place !== 'city') await enterInterior(place, opts);
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
@@ -287,7 +294,7 @@ window.addEventListener('keydown', (e) => {
     case 'KeyH': hud.toggleHelp(); break;
     case 'KeyL': toggleLanding(); break;
     case 'KeyV': hud.showMessage(voice.toggle() ? 'Voice on.' : 'Voice off.', 2000); break;
-    case 'KeyK': if (state.story) { hud.journalOpen ? hud.hideJournal() : hud.showJournal(state.story.journal, state.story.crew, state.story.objective); } break;
+    case 'KeyK': if (state.story) { hud.journalOpen ? hud.hideJournal() : hud.showJournal(state.story.journal, state.story.crew.length ? state.story.crew : ['Corin Pellis'], state.story.objective); } break;
   }
 });
 
@@ -307,10 +314,41 @@ window.addEventListener('resize', resize);
 resize();
 
 // ---------------------------------------------------------------- story wiring
+function activeStories() {
+  const list = state.mode === 'story' ? [SECOND_MIND] : [];
+  for (const id of state.story?.contracts ?? []) { const s = storyById(id); if (s) list.push(s); }
+  return list;
+}
+
+function refreshContracts(): void {
+  const st = state.story;
+  if (!st) return;
+  const items = SIDE_STORIES.map((s) => ({
+    id: s.id, title: s.title, world: worldById(s.contract!.world).name, summary: s.contract!.summary, reward: s.contract!.reward,
+    status: st.completed.includes(s.id) ? 'done' as const : st.contracts.includes(s.id) ? 'active' as const : 'open' as const,
+  })).filter((c) => { const req = storyById(c.id)!.contract!.requires ?? []; return c.status !== 'open' || req.every((f) => st.flags.includes(f)); });
+  hud.setContracts(items, acceptContract);
+}
+
+function acceptContract(id: string): void {
+  const st = state.story; const s = storyById(id);
+  if (!st || !s || !s.contract || st.contracts.includes(id) || st.completed.includes(id)) return;
+  st.contracts.push(id);
+  story?.addStory(s);
+  if (state.mode === 'story') { for (const w of s.unlocked) if (!st.unlocked.includes(w)) st.unlocked.push(w); map.allowed = new Set(st.unlocked); map.setCurrent(world); }
+  const target = worldById(s.contract.world);
+  hud.setObjective(`Contract: ${s.title}. Fly to ${target.name}.`);
+  st.objective = `Contract: ${s.title}. Fly to ${target.name}.`;
+  hud.showMessage(`Contract accepted: ${s.title}.`, 3500);
+  audio.blip(990);
+  refreshContracts();
+  saveState(state);
+}
+
 function attachStory(): void {
   if (!state.story) return;
   const st = state.story;
-  story = new StoryEngine(SECOND_MIND, st, {
+  story = new StoryEngine(activeStories(), st, {
     say: (who, text) => dialogue.say(who, text),
     choose: (options) => dialogue.choose(options),
     chapter: (title, sub) => { dialogue.hide(); return dialogue.chapter(title, sub); },
@@ -328,13 +366,15 @@ function attachStory(): void {
       else { dialogue.hide(); ship.enabled = shipMayFly(); }
     },
     end: (text) => hud.showMessage(text, 8000),
-    enter: (place) => enterPlace(place),
+    enter: (place, opts) => enterPlace(place, opts),
+    complete: (id) => { story?.removeStory(id); refreshContracts(); saveState(state); },
     save: () => saveState(state),
   });
-  map.allowed = new Set(st.unlocked);
+  map.allowed = state.mode === 'story' ? new Set(st.unlocked) : null;
   map.setCurrent(world);
   hud.setObjective(st.objective);
-  hud.setStrain(st.strain, true);
+  hud.setStrain(st.strain, state.mode === 'story');
+  refreshContracts();
 }
 
 // ---------------------------------------------------------------- intro / mode select
@@ -369,7 +409,7 @@ function start(mode: Mode, fresh = false): void {
   map.setCurrent(world);
   hud.setStrain(0, false);
   hud.setObjective('');
-  if (mode === 'story') attachStory();
+  attachStory();
   intro.classList.add('hide');
   setTimeout(() => (intro.style.display = 'none'), 1400);
   ship.enabled = true;
@@ -379,6 +419,7 @@ function start(mode: Mode, fresh = false): void {
     // replay a pending arrival scene after a reload
     if (loaded) void story!.fire({ type: 'arrive', world: world.id });
   } else {
+    if (loaded) void story!.fire({ type: 'arrive', world: world.id });
     hud.showMessage(`Welcome to ${world.name}. Press H for controls.`, 5000);
   }
 }
@@ -494,7 +535,7 @@ function frame(): void {
     camera.updateMatrixWorld();
     audio.setThrottle(0, false);
     hud.setFlight(0, 0, false, 0, state.fuel, FUEL_CAPACITY, state.credits, dateText());
-    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${(PLACE_NAMES[interior.sceneName] ?? interior.sceneName).toUpperCase()} · L TO RETURN` : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
+    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${interiorLabel.toUpperCase()} · L TO RETURN` : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
   } else {
     ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);

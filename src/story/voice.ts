@@ -125,6 +125,20 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Daniel', 'Oliver'], pitch: 0.9, rate: 0.88 },
     portrait: { key: 'daneel', prompt: 'A man of indeterminate age with a calm, perfectly symmetrical face, short dark hair, in a plain dark suit, standing in a dim chamber of dark glass with the Earth hanging in a great window behind him. Gentle, ancient, immovable.' },
   },
+  'RAL GOROV': {
+    voice: 'verse',
+    instructions: 'A Foundation Trader in his forties who expects to die in the morning and is being brave about it in a tired, sardonic way. Quick, dry, grateful when it counts.',
+    fx: 'plain',
+    fallback: { names: ['Alex', 'Daniel'], pitch: 1.0, rate: 1.05 },
+    portrait: { key: 'gorov', prompt: 'A Foundation Trader in his forties, lean and unshaven, in a worn Trader jacket with Ponyets House colours, seated under guard at a dark wooden table in a lamplit hall of petitions. Tired, sardonic, brave.' },
+  },
+  'ELDER PHERL': {
+    voice: 'onyx',
+    instructions: 'An old Askonian Elder, oily and ceremonious, every sentence a performance of piety with greed showing at the seams. Slow, unctuous, dangerous when cornered.',
+    fx: 'plain',
+    fallback: { names: ['Daniel', 'Fred'], pitch: 0.8, rate: 0.88 },
+    portrait: { key: 'pherl', prompt: 'An old Askonian Elder in a grey ceremonial robe with ancestral tokens on a chain, heavy-lidded eyes, a thin smile, in a hall of dark wood and lamps. Oily, pious, greedy.' },
+  },
   MEMORY: {
     voice: 'fable',
     instructions: 'A faint recorded voice from very long ago. Old, kind, patient, slightly worn, as if played from a damaged medium. Speaks as a teacher to a child it will never meet.',
