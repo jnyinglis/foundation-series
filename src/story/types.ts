@@ -1,7 +1,7 @@
 // Data format for story scripts. A story is a list of scenes. Each scene fires
 // once when its trigger happens, and runs its steps in order.
 
-export type Place = 'space' | 'city' | 'cantina' | 'archive' | 'library' | 'sacratorium' | 'terrace' | 'vault' | 'ruins' | 'estate';
+export type Place = 'space' | 'city' | 'cantina' | 'archive' | 'library' | 'sacratorium' | 'terrace' | 'vault' | 'ruins' | 'estate' | 'village' | 'moon';
 
 export type Trigger =
   | { type: 'start' }
@@ -20,6 +20,8 @@ export interface Choice {
   goto?: string;
   /** Only show this choice when all of these flags are set. */
   needs?: string[];
+  /** Only show this choice when strain is at or below this value. */
+  maxStrain?: number;
 }
 
 export type Step =

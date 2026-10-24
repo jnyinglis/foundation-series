@@ -95,7 +95,7 @@ export class StoryEngine {
       if ('say' in step) {
         await this.hooks.say(step.who ?? '', step.say);
       } else if ('choice' in step) {
-        const options = step.choice.filter((c) => !c.needs || c.needs.every((f) => this.hasFlag(f)));
+        const options = step.choice.filter((c) => (!c.needs || c.needs.every((f) => this.hasFlag(f))) && (c.maxStrain === undefined || this.state.strain <= c.maxStrain));
         const c = await this.hooks.choose(options);
         if (c.set) this.setFlags(c.set);
         if (c.strain) { this.state.strain += c.strain; this.hooks.strain(this.state.strain); }

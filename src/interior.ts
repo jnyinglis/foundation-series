@@ -167,6 +167,7 @@ export class Interior {
   private onKeyUp = (e: KeyboardEvent) => { this.keys.delete(e.code); };
   private onMouse = (e: MouseEvent) => { if (document.pointerLockElement) { this.mouseDX += e.movementX; this.mouseDY += e.movementY; } };
   inputEnabled = true;
+  private fireLight: THREE.PointLight | null = null;
   private bounds = { x: 10.4, z: 7.4 };
   /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
   baked = false;
@@ -216,7 +217,29 @@ export class Interior {
     });
     this.scene.add(root);
     // lights for the characters only; the room itself is baked
-    if (this.sceneName === 'ruins') {
+    if (this.sceneName === 'village') {
+      const skyGeo = new THREE.SphereGeometry(220, 32, 16);
+      const skyMat = new THREE.ShaderMaterial({
+        side: THREE.BackSide, depthWrite: false,
+        vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader: `precision highp float; varying vec3 vDir;
+          float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+          void main(){ vec3 d = normalize(vDir); float t = clamp(d.y, 0.0, 1.0);
+            vec3 col = mix(vec3(0.08, 0.09, 0.16), vec3(0.01, 0.015, 0.05), smoothstep(0.0, 0.5, t));
+            float stars = step(0.997, h(floor(d.xz / max(d.y, 0.05) * 80.0))) * smoothstep(0.1, 0.6, t);
+            float moon = pow(max(dot(d, normalize(vec3(0.3, 0.5, 0.8))), 0.0), 900.0);
+            col += stars * 0.9 + vec3(0.8, 0.85, 1.0) * moon * 2.5; gl_FragColor = vec4(col, 1.0); }`,
+      });
+      const sky = new THREE.Mesh(skyGeo, skyMat); this.scene.add(sky); this.disposables.push(skyGeo, skyMat);
+      this.scene.add(new THREE.HemisphereLight(0x303a60, 0x1a1208, 0.9));
+      const fire = new THREE.PointLight(0xff7a30, 30, 18, 1.5); fire.position.set(0, 1.4, 2); this.scene.add(fire);
+      this.fireLight = fire;
+      const moon = new THREE.DirectionalLight(0x8090c0, 0.6); moon.position.set(5, 12, -14); this.scene.add(moon);
+    } else if (this.sceneName === 'moon') {
+      this.scene.add(new THREE.HemisphereLight(0x3a4a70, 0x08080c, 0.8));
+      const earth = new THREE.PointLight(0x8fb0ff, 30, 40, 1.3); earth.position.set(0, 5.5, -18); this.scene.add(earth);
+      const lamp = new THREE.PointLight(0xffc080, 8, 10, 1.6); lamp.position.set(1.6, 1.3, -6); this.scene.add(lamp);
+    } else if (this.sceneName === 'ruins') {
       const skyGeo = new THREE.SphereGeometry(200, 32, 16);
       const skyMat = new THREE.ShaderMaterial({
         side: THREE.BackSide, depthWrite: false,
@@ -471,6 +494,7 @@ export class Interior {
       this.pitch += (tp - this.pitch) * Math.min(1, dt * 3);
       f.lookAt(this.playerPos);
     }
+    if (this.fireLight) this.fireLight.intensity = 26 + Math.sin(time * 9.1) * 3 + Math.sin(time * 23.7) * 2;
     this.fov += (this.targetFov - this.fov) * Math.min(1, dt * 3);
     camera.fov = this.fov; camera.updateProjectionMatrix();
     camera.position.copy(this.playerPos);

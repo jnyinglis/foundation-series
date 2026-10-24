@@ -111,6 +111,20 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Samantha', 'Alex'], pitch: 1.1, rate: 0.92 },
     portrait: { key: 'bander', prompt: 'A tall, hairless, androgynous Solarian with pale skin, no eyebrows, faint ridged lobes behind the ears, in a white high-collared suit, standing in a white immaculate hall with ivory robots in alcoves behind. Curious, imperious, utterly alone.' },
   },
+  SANYA: {
+    voice: 'shimmer',
+    instructions: 'An island elder, warm, unhurried, laughing easily, with a terrible kindness underneath. Speaks as a host who has decided everything already.',
+    fx: 'plain',
+    fallback: { names: ['Moira', 'Samantha'], pitch: 0.95, rate: 0.92 },
+    portrait: { key: 'sanya', prompt: 'An island elder in her seventies of Polynesian descent, long grey hair loose, a bright printed wrap, seated by a beach fire at night with palms and huts behind, firelight on her face. Warm, amused, and quietly resolved.' },
+  },
+  DANEEL: {
+    voice: 'ash',
+    instructions: 'A voice twenty thousand years old that has never once been raised. Gentle, exact, infinitely patient, a little tired. Every sentence is kind, and none of them is negotiable.',
+    fx: 'robot',
+    fallback: { names: ['Daniel', 'Oliver'], pitch: 0.9, rate: 0.88 },
+    portrait: { key: 'daneel', prompt: 'A man of indeterminate age with a calm, perfectly symmetrical face, short dark hair, in a plain dark suit, standing in a dim chamber of dark glass with the Earth hanging in a great window behind him. Gentle, ancient, immovable.' },
+  },
   MEMORY: {
     voice: 'fable',
     instructions: 'A faint recorded voice from very long ago. Old, kind, patient, slightly worn, as if played from a damaged medium. Speaks as a teacher to a child it will never meet.',

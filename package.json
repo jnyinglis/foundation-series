@@ -17,6 +17,8 @@
     "scene:vault": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/vault.py -- public/scenes",
     "scene:ruins": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/ruins.py -- public/scenes",
     "scene:estate": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/estate.py -- public/scenes",
+    "scene:village": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/village.py -- public/scenes",
+    "scene:moon": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/moon.py -- public/scenes",
     "scene:archive": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/archive.py -- public/scenes",
     "scene:cantina": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/cantina.py -- public/scenes",
     "connectivity": "tsx scripts/connectivity.ts"

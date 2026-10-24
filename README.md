@@ -25,7 +25,7 @@ The `dist/` folder can be hosted on GitHub Pages or any static host.
   with its origin memory blocked. An Encyclopedist named Ilen Sarvo has found the
   one surviving index entry for a world called Earth. Someone has erased every
   other copy for ten thousand years. Chapters unlock worlds as the story moves.
-  Chapters one to six are written, and chapter seven opens at Alpha.
+  All eight chapters are written, from Terminus to the Moon, with three endings.
 
 Stories are data. See `src/story/types.ts` for the format and
 `src/story/second-mind.ts` for the script. A scene fires on a trigger (start,
@@ -102,6 +102,8 @@ npm run scene:terrace           # the Sayshell terrace at dusk
 npm run scene:vault             # the Comporellon archive vault
 npm run scene:ruins             # the Fastolfe estate ruins on Aurora
 npm run scene:estate            # the Bander estate on Solaria
+npm run scene:village           # New Earth on Alpha, a beach at night
+npm run scene:moon              # Daneel's chamber under the Moon
 npm run scene:cantina -- --fast # quick low-sample preview
 ```
 

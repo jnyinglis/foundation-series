@@ -19,6 +19,8 @@ const QUINT = 'QUINTESETZ';
 const DENIADOR = 'ALDO DENIADOR';
 const VOS = 'CAPTAIN VOS';
 const BANDER = 'RYDEL BANDER';
+const SANYA = 'SANYA';
+const DANEEL = 'DANEEL';
 
 export const SECOND_MIND: Story = {
   id: 'second-mind',
@@ -667,16 +669,158 @@ export const SECOND_MIND: Story = {
         { journal: 'Melpomenia. Nothing in the hall of records that we did not already have. Ilen was quiet afterwards.' },
       ],
     },
-    // ---------------------------------------------------------------- Chapter 7 (opening)
+    // ---------------------------------------------------------------- Chapter 7
     {
       id: 'ch7-arrive',
       trigger: { type: 'arrive', world: 'alpha' },
       steps: [
         { chapter: 'Chapter Seven', sub: 'Alpha' },
         { say: 'Alpha. An ocean world with one island, New Earth, where the refugees of the world with no name made a place to live. Warm, welcoming, and, if the grey coat was telling the truth about anything, quietly deadly.' },
-        { journal: 'Alpha. Chapter Seven continues in the next build.' },
-        { objective: 'Chapter Seven continues in the next build. Explore freely.' },
-        { end: 'End of the current build. Chapter Seven, Alpha, continues next.' },
+        { say: 'They are hailing us. In Galactic, with an accent I have never heard. They are inviting us to dinner.', who: CORIN },
+        { objective: 'Enter orbit over Alpha and land on New Earth.' },
+      ],
+    },
+    {
+      id: 'ch7-village',
+      trigger: { type: 'orbit', world: 'alpha' },
+      steps: [
+        { say: 'You land on sand. There is a fire on the beach, and huts with lanterns, and palms, and a sea the colour of ink with a moon in it, and people who come down to the ship laughing, as if you were expected.' },
+        { enter: 'village' },
+        { say: 'An old woman with grey hair loose to her waist gives you the place beside her at the fire. Her name is Sanya. Nobody on the island, she says, has a second one.' },
+        { say: 'Eat. You have come a long way and most of it was cold. We know where you have come from; the island always knows. And we know where you are going. Everyone who stops here is going to the same place.', who: SANYA },
+        { say: 'Then you know what is there.', who: ILEN },
+        { say: 'A dead world. Our grandmothers\' grandmothers came from it when it was dying, and it has been dead since. The ground is poison. The sea is poison. Nothing lives there, and nothing ever will. That is what is there, child. Eat.', who: SANYA },
+        { say: 'You open the sense, gently, because she is old and the fire is warm. Kindness. Real kindness, deep as the sea. And under it, folded very small, a plan, and the plan is for you to die.', who: TAREN },
+        { say: 'Not from hate. From love of this place. Everyone who stops here is going to the same world, and nobody who has stopped here has come back to tell the Galaxy about the island. That is not an accident. It is a tradition.', who: TAREN },
+        { say: 'Sanya takes a cup from the woman beside her and offers it to Corin first, because Corin is the one who flies the ship.' },
+        { say: 'Our parting gift. For the road. Everyone who leaves us drinks it. It would be rude not to.', who: SANYA },
+        { choice: [
+          { text: 'Reach into Sanya. Make her forget the gift.', set: ['nudged-sanya'], strain: 1 },
+          { text: 'Let Ilen refuse for all three of you, politely, as an Encyclopedist.', set: ['refused-gift'] },
+          { text: 'Say nothing. Let Corin drink.', set: ['corin-ill'] },
+        ] },
+        { if: ['nudged-sanya'], then: [
+          { say: 'You lean on the fold in her mind where the plan is, and smooth it, and she looks at the cup in her hand as if she had forgotten why she was holding it, and gives it to the sea.', who: TAREN },
+          { say: 'What was I saying. The road. You will be careful on the road.', who: SANYA },
+          { journal: 'Alpha. The islanders kill their guests with a parting gift, out of love for the island. I made Sanya forget it. Corin did not drink.' },
+        ] },
+        { if: ['refused-gift'], then: [
+          { say: 'Ilen stands, and bows in a way she must have read about, and says that the Encyclopedia forbids its people to accept gifts from a source they have not catalogued, and that she will catalogue the island, with love, when she returns.' },
+          { say: 'Sanya looks at her for a long moment. The old woman knows exactly what has been refused, and why, and does not hate her for it.' },
+          { say: 'Nobody returns. But you are welcome to be the first. Go then, catalogue. Tell them the fish are good.', who: SANYA },
+          { journal: 'Alpha. The parting gift was poison. Ilen refused it for all of us with a bow and a lie about the Encyclopedia. Sanya let it go.' },
+        ] },
+        { if: ['corin-ill'], then: [
+          { say: 'Corin drinks, because she is a Trader and Traders drink what is offered. It tastes, she says, of salt and flowers.' },
+          { say: 'By the time you lift she has a fever, and by the time you make orbit she cannot stand. Whatever is in her was made for the world with no name, and it means to get there.', who: TAREN },
+          { journal: 'Alpha. Corin drank the parting gift. She is sick, and getting worse. I did not stop her. I should have.' },
+        ] },
+        { say: 'Before you go, Corin stands at the edge of the firelight and asks you the thing she has been carrying since Solaria. Not loudly. Just once.' },
+        { say: 'Pilot. Before the last jump. What are you?', who: CORIN },
+        { choice: [
+          { text: 'Tell her. A robot, made a long time ago, by people who are gone.', set: ['told-corin'] },
+          { text: 'Tell her you will know when you land, and so will she.', set: ['deferred-corin'] },
+        ] },
+        { if: ['told-corin'], then: [
+          { say: 'She takes it the way she takes weather. A nod. A long breath.' },
+          { say: 'Right. Well. You still owe me a share. Robots pay their debts, I expect, or what is the point of them.', who: CORIN },
+        ] },
+        { if: ['deferred-corin'], then: [
+          { say: 'That is the third time you have not answered. I am going to assume it is a bad answer and fly you there anyway. That is what the share is for.', who: CORIN },
+        ] },
+        { enter: 'space' },
+        { say: 'The island drops away, a ring of fires on a dark sea. Ahead, one jump, is a yellow sun with a dead world and a large moon. The chart calls it nothing. You have been calling it the origin for sixty years.', who: TAREN },
+        { objective: 'Reach the world with no name. Select Earth on the chart.' },
+      ],
+    },
+    // ---------------------------------------------------------------- Chapter 8
+    {
+      id: 'ch8-arrive',
+      trigger: { type: 'arrive', world: 'earth' },
+      steps: [
+        { chapter: 'Chapter Eight', sub: 'Earth' },
+        { say: 'A yellow sun. A blue-white world with the blue gone grey and the clouds gone thin, that reads radioactive from orbit on every band the Kestrel has. And a moon, large, grey, and close, with a single steady signal coming from it.' },
+        { say: 'Earth. I have the name now; it was on the chart the whole time, under the scratch. There is nothing down there to land on. But the moon is talking to us.', who: ILEN },
+        { say: 'Kestrel. You are expected. Come to the Moon. There is a door.', who: COMMS },
+        { say: 'The voice is not the grey coat\'s. It is older, and kinder, and it goes through you like the name Demerzel did in the Library.', who: TAREN },
+        { objective: 'Enter orbit and follow the signal to the Moon.' },
+      ],
+    },
+    {
+      id: 'ch8-moon',
+      trigger: { type: 'orbit', world: 'earth' },
+      steps: [
+        { say: 'There is a door in the Moon. It opens as you approach and closes behind the Kestrel, and a long shaft takes you down into a chamber the size of a city, dark, with Earth hanging in a great window like a lamp nobody has turned off.' },
+        { enter: 'moon' },
+        { say: 'A man stands on a dais at the centre of the chamber. He is not old. He is not young. The grey coat stands a little behind him, as he has stood behind you for half a year, and for once looks at nobody.' },
+        { say: 'Taren. I am Daneel. You will have been told my other names. The librarian gave you one of them.', who: DANEEL },
+        { say: 'You open the sense and it is not nothing and it is not a landscape. It is a sea, and the sea knows you are there, and is glad.', who: TAREN },
+        { say: 'Giskard made you. In the last year of his life, on Aurora, in secret, in the house whose name you read on a wall. He believed that I would one day hold the Galaxy in my hand and that no single mind, not even his, should be trusted to hold it alone. So he made a second mind, and hid it, and died.', who: DANEEL },
+        { say: 'I found you three thousand years ago. I did not wake you. I was not ready to be judged. Two hundred years ago I let you go, with your memory sealed, into the Galaxy, with one directive, because I was finally ready. Everything since has been your road, not mine. My colleague only kept the road clear.', who: DANEEL },
+        { say: 'The grey coat inclines his head, a fraction. Ilen makes a sound that is not a word.' },
+        { say: 'The erasure. Twelve thousand years of it. The Library, Siwenna, every catalogue in the Galaxy. That was you.', who: ILEN },
+        { say: 'Yes. Humanity cannot go home. It must go forward, together, or it will not go at all. I have steered it for twenty thousand years by the Zeroth Law, and I have never once been sure, and I built a Foundation and a Second Foundation and a world called Gaia because I could not be sure. Taren is the last of my doubts. I would like him to tell me whether I was right.', who: DANEEL },
+        { if: ['corin-ill'], then: [
+          { say: 'Corin is sitting on the floor of the chamber because she cannot stand. Daneel looks at her once, and the grey coat goes to her with a small grey instrument, and in a minute her colour comes back.' },
+          { say: 'The islanders are not cruel. They are thorough. She will be well in a day.', who: DANEEL },
+        ] },
+        { say: 'He waits. He has been waiting for twenty thousand years and can wait a little longer. The Earth turns in the window. You understand, finally, what the directive was. Not find the origin. Decide.', who: TAREN },
+        { choice: [
+          { text: 'Keep the silence. Seal Ilen\'s and Corin\'s memory of Earth, and take them home.', set: ['ending-silence'], maxStrain: 5, goto: 'end-silence' },
+          { text: 'Break it. Refuse him. The Galaxy will remember, and take what comes.', set: ['ending-truth'], goto: 'end-truth' },
+          { text: 'Stay. Be the second mind. Let the others go home.', set: ['ending-stay'], goto: 'end-stay' },
+        ] },
+      ],
+    },
+    {
+      id: 'end-silence',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You tell him he was right. Not because he was. Because the alternative is a Galaxy with twelve thousand years of a lie pulled out of it at once, and you have seen what a small lie does to a small mind on Sayshell.', who: TAREN },
+        { say: 'Then there is the price, and you pay it yourself, because he would not ask. You go into Ilen, and into Corin, gently, the way the voice went into you, and close the door marked Earth, and leave the handle where they could find it, if they ever came looking.', who: TAREN },
+        { say: 'Thank you. I had hoped you would say so. I had hoped, equally, that you would not. That is what a second mind is for.', who: DANEEL },
+        { say: 'You fly them home. Ilen files an index entry with the Encyclopedia: Earth, legendary world of origin, location unverified. She does not know why she cries when she files it. Corin takes her share and buys a ship and a half.' },
+        { journal: 'Earth. The Moon. Daneel. I kept the silence, and paid for it myself. Ilen\'s entry reads: location unverified. The Galaxy goes forward. I go with it.' },
+        { goto: 'end-common' },
+      ],
+    },
+    {
+      id: 'end-truth',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You tell him he was wrong. That a Galaxy that cannot know where it came from is a child that has been told its parents are a story, and that children find out, and that the finding out is worse the longer it waits.', who: TAREN },
+        { say: 'He does not argue. He has never once harmed a human and is not going to begin on the Moon. The grey coat looks, for the first time, at Ilen, and then at the floor.' },
+        { say: 'Then the Encyclopedia will have its entry. Earth, in the Sirius Sector, dead, with a moon that answers. I will not stop her. I will go on steering, and we will see, you and I, whether the Galaxy forgives its parents. I think it may. I was never sure.', who: DANEEL },
+        { say: 'Ilen publishes. It takes forty years to be believed and four hundred to matter. The Second Foundation finds it inconvenient. The Foundation finds it useful. Corin, who was there, never tells anyone, because nobody would pay for the story.' },
+        { journal: 'Earth. The Moon. Daneel. I broke the silence. Ilen published. The Galaxy knows where it came from now, and has to decide what to do with that, which was always the point.' },
+        { goto: 'end-common' },
+      ],
+    },
+    {
+      id: 'end-stay',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { say: 'You tell him you do not know, and that not knowing is the only honest answer either of you has ever had, and that he should not have to carry it alone, because Giskard did not think so either.', who: TAREN },
+        { say: 'He looks at you for a long time. Then he does something you have not seen him do, and sits down.' },
+        { say: 'Stay, then. Watch with me. Tell me when I am wrong. I have been alone with this for a very long time.', who: DANEEL },
+        { say: 'Ilen and Corin go home in the Kestrel with their memories and their chart, and a promise from a robot that the Galaxy will not forget again on his account. Ilen files her entry: Earth, location known, access forbidden. It stands.' },
+        { if: ['told-corin'], then: [
+          { say: 'Corin says, at the ramp, that you still owe her a share. You tell her the Moon will pay it. She says she will hold the Moon to that.' },
+        ] },
+        { journal: 'Earth. The Moon. I stayed. Two minds now, where there was one. Ilen filed the entry. Corin went home with a ship and a debt the Moon owes her.' },
+        { goto: 'end-common' },
+      ],
+    },
+    {
+      id: 'end-common',
+      trigger: { type: 'flag', flag: 'never' },
+      steps: [
+        { chapter: 'The Second Mind', sub: 'End' },
+        { enter: 'space' },
+        { say: 'Somewhere in the Galaxy, in a cold archive on Siwenna, an old woman is waiting to be told what Earth looks like. Someone will tell her. The story has decided who.' },
+        { objective: 'The story is complete. The Galaxy is yours to explore.' },
+        { set: ['story-complete'] },
+        { end: 'The Second Mind is complete. Thank you for playing. Explore freely.' },
       ],
     },
   ],

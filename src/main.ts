@@ -159,7 +159,7 @@ function leaveCity(): void {
   view = 'space';
 }
 let interiorLoading = false;
-const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault', ruins: 'the Fastolfe estate on Aurora', estate: 'the Bander estate on Solaria' };
+const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault', ruins: 'the Fastolfe estate on Aurora', estate: 'the Bander estate on Solaria', village: 'New Earth, on Alpha', moon: 'the chamber under the Moon' };
 let lastLandmark: string | null = null;
 async function enterInterior(name = 'cantina'): Promise<void> {
   if ((view === 'interior' && interior?.sceneName === name) || interiorLoading) return;
@@ -205,6 +205,8 @@ function toggleLanding(): void {
   else if (world.id === 'comporellon') void enterInterior('vault');
   else if (world.id === 'aurora') void enterInterior('ruins');
   else if (world.id === 'solaria') void enterInterior('estate');
+  else if (world.id === 'alpha') void enterInterior('village');
+  else if (world.id === 'earth') void enterInterior('moon');
   else hud.showMessage('No landing site is charted here yet.', 3000);
 }
 dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };
@@ -540,7 +542,7 @@ function frame(): void {
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon', 'aurora', 'solaria'].includes(world.id);
+    const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon', 'aurora', 'solaria', 'alpha', 'earth'].includes(world.id);
     if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 

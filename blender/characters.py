@@ -94,6 +94,16 @@ CHARACTERS = {
         skin='young_caucasian_female2.mhmat', hair=None, eyebrows=None, eyelashes='eyelashes01.mhclo',
         clothes=['matcreator_mc-skinsuit_2022.mhclo'],
     ),
+    'sanya': dict(
+        macro=dict(gender=0.1, age=0.75, muscle=0.5, weight=0.6, proportions=0.45, height=0.45, cupsize=0.6, firmness=0.3, race=race(0.1, 0.5, 0.4)),
+        skin='callharvey3d_midtoned_female.mhmat', hair='long01.mhclo', eyebrows='eyebrow004.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['skalldyrssuppe_tube_top_funky_colors.mhclo', 'toigo_harem_pants.mhclo'],
+    ),
+    'daneel': dict(
+        macro=dict(gender=0.95, age=0.42, muscle=0.55, weight=0.45, proportions=0.85, height=0.7, cupsize=0.5, firmness=0.5, race=race(0.8, 0.15, 0.05)),
+        skin='young_caucasian_male2.mhmat', hair='short01.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_elegantsuit01.mhclo', 'shoes01.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',
