@@ -23,6 +23,7 @@ import { MAIN_STORY, SIDE_STORIES, storyById } from './story/index';
 const SECOND_MIND = MAIN_STORY;
 import { TrantorCity } from './city';
 import { Interior } from './interior';
+import { Avatar, type Look } from './avatar';
 
 type Mode = 'explore' | 'story';
 
@@ -86,6 +87,26 @@ composer.addPass(output);
 const comicPass = new ShaderPass(ComicShader);
 comicPass.enabled = false;
 composer.addPass(comicPass);
+
+// ---------------------------------------------------------------- character look
+// 'real' is the exported physically based look; 'toon' is stepped shading, ink outlines and a light comic pass in rooms.
+const LOOK_KEY = 'fdn-look';
+const COMIC_PRESETS: Record<'capture' | 'room', Record<string, number>> = {
+  capture: { uLevels: 7, uEdge: 1.0, uEdgeLo: 0.22, uEdgeHi: 0.6, uHalftone: 0.45, uDot: 6, uSaturation: 1.15, uDepthEdge: 0.03 },
+  room: { uLevels: 9, uEdge: 0.5, uEdgeLo: 0.3, uEdgeHi: 0.8, uHalftone: 0.12, uDot: 5, uSaturation: 1.0, uDepthEdge: 1e6 },
+};
+function applyComicPreset(name: 'capture' | 'room'): void { for (const [k, v] of Object.entries(COMIC_PRESETS[name])) comicPass.uniforms[k].value = v; }
+let look: Look = 'real';
+function setLook(l: Look): void {
+  look = l; Avatar.defaultLook = l; interior?.setLook(l);
+  try { localStorage.setItem(LOOK_KEY, l); } catch { /* ignore */ }
+}
+{
+  const q = new URLSearchParams(location.search).get('look');
+  let saved: string | null = null; try { saved = localStorage.getItem(LOOK_KEY); } catch { /* ignore */ }
+  const l = q ?? saved; if (l === 'toon' || l === 'real') { look = l; Avatar.defaultLook = l; }
+}
+let captureComic = false;
 // a depth-only render of the scene feeds the comic outlines while capturing
 const depthRT = new THREE.WebGLRenderTarget(1, 1, { depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) });
 comicPass.uniforms.tDepth.value = depthRT.depthTexture;
@@ -651,7 +672,11 @@ function frame(): void {
   saveTimer += dt;
   if (saveTimer > 5 && started) { saveTimer = 0; saveState(state); }
 
-  if (comicPass.enabled) {
+  // the comic pass runs for captures, and in rooms when the toon look is on (without the depth pre-render, which costs a full scene draw)
+  const roomComic = !captureMode && look === 'toon' && view === 'interior';
+  const wantComic = captureMode ? captureComic : roomComic;
+  if (wantComic !== comicPass.enabled) { comicPass.enabled = wantComic; if (wantComic) applyComicPreset(captureMode ? 'capture' : 'room'); if (!captureMode) bloom.strength = wantComic ? 0.35 : 0.7; }
+  if (comicPass.enabled && captureMode) {
     const cam = renderPass.camera as THREE.PerspectiveCamera;
     const w = captureSize?.w ?? window.innerWidth, h = captureSize?.h ?? window.innerHeight;
     if (depthRT.width !== w || depthRT.height !== h) depthRT.setSize(w, h);
@@ -671,8 +696,8 @@ function requestCapture(w: number, h: number): Promise<string> {
   return new Promise((resolve) => { captureReq = { resolve: (d) => { captureSize = null; resize(); resolve(d); }, frames: 3 }; });
 }
 const capture = {
-  begin(): void { captureMode = true; ship.enabled = false; hud.hideInfo(); hud.hideHelp(); comicPass.enabled = true; bloom.strength = 0.25; renderer.toneMappingExposure = 0.85; },
-  end(): void { captureMode = false; comicPass.enabled = false; ship.enabled = shipMayFly(); bloom.strength = 0.7; renderer.toneMappingExposure = 1.0; },
+  begin(): void { captureMode = true; captureComic = true; ship.enabled = false; hud.hideInfo(); hud.hideHelp(); comicPass.enabled = true; applyComicPreset('capture'); bloom.strength = 0.25; renderer.toneMappingExposure = 0.85; },
+  end(): void { captureMode = false; captureComic = false; comicPass.enabled = false; ship.enabled = shipMayFly(); bloom.strength = 0.7; renderer.toneMappingExposure = 1.0; },
   async place(name: string, opts: EnterOptions = {}): Promise<void> { if (mapOpen) closeMap(); if (name === 'space') { leaveCity(); leaveInterior(); } else if (name === 'city') enterCity(); else await enterInterior(name, opts); },
   view(pos: [number, number, number], yaw: number, pitch: number, fov = 50): void { interior?.setView(pos, yaw, pitch, fov); },
   actor(name: string, o: { talking?: boolean; mouth?: number; face?: boolean; look?: boolean }): void {
@@ -702,7 +727,7 @@ const capture = {
   },
   comic(o: Partial<{ levels: number; edge: number; lo: number; hi: number; halftone: number; dot: number; saturation: number; enabled: boolean }>): void {
     const u = comicPass.uniforms; if (o.levels !== undefined) u.uLevels.value = o.levels; if (o.edge !== undefined) u.uEdge.value = o.edge; if (o.lo !== undefined) u.uEdgeLo.value = o.lo; if (o.hi !== undefined) u.uEdgeHi.value = o.hi;
-    if (o.halftone !== undefined) u.uHalftone.value = o.halftone; if (o.dot !== undefined) u.uDot.value = o.dot; if (o.saturation !== undefined) u.uSaturation.value = o.saturation; if (o.enabled !== undefined) comicPass.enabled = o.enabled;
+    if (o.halftone !== undefined) u.uHalftone.value = o.halftone; if (o.dot !== undefined) u.uDot.value = o.dot; if (o.saturation !== undefined) u.uSaturation.value = o.saturation; if (o.enabled !== undefined) { captureComic = o.enabled; comicPass.enabled = o.enabled; }
   },
   async shot(name: string, w = 1200, h = 800): Promise<{ name: string; bytes: number }> {
     const dataUrl = await requestCapture(w, h);
@@ -719,5 +744,6 @@ const capture = {
   get story() { return story; },
   get view() { return view; },
   get interior() { return interior; },
-  enterCity, enterInterior, capture,
+  enterCity, enterInterior, capture, setLook, applyComicPreset, comicPass,
+  get look() { return look; },
 };

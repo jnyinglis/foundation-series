@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Avatar, avatarFileFor, type Actor } from './avatar';
+import { Avatar, avatarFileFor, type Actor, type Look } from './avatar';
 import type { EnterOptions } from './story/types';
 
 // Walkable interiors with stylised procedural characters. The first interior is
@@ -349,6 +349,9 @@ export class Interior {
     this.playerPos.set(meta.spawn.pos[0], meta.spawn.pos[1], meta.spawn.pos[2]);
     this.yaw = meta.spawn.yaw;
   }
+
+  /** Applies a character look to every loaded avatar. */
+  setLook(look: Look): void { for (const a of this.figures.values()) if (a instanceof Avatar) a.setLook(look); }
 
   /** Loads rigged avatars where a character file exists, with the procedural figure as the fallback. */
   private async placeActors(figures: SceneMeta['figures']): Promise<void> {

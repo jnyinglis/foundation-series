@@ -61,6 +61,27 @@ export function avatarFileFor(name: string): string | undefined {
   return AVATAR_FILES[name];
 }
 
+/** How characters are drawn: 'real' keeps the exported physically based materials, 'toon' uses stepped shading and an ink outline. */
+export type Look = 'real' | 'toon';
+
+// shading steps against the light's dot product: faces turned away get nothing, so hair cards and mouths stay dark
+const gradientMap = (() => {
+  const t = new THREE.DataTexture(new Uint8Array([0, 0, 90, 180, 255]), 5, 1, THREE.RedFormat);
+  t.minFilter = t.magFilter = THREE.NearestFilter; t.needsUpdate = true; return t;
+})();
+// no hull on eyes, lashes, brows, hair cards, teeth: the ink would fill them in
+const NO_OUTLINE = /eye|lash|brow|hair|teeth|tongue|low-poly/i;
+
+/** An inverted hull: the same mesh drawn back-face only, pushed out along its normals, in ink. */
+function outlineMaterial(width: number): THREE.MeshBasicMaterial {
+  const m = new THREE.MeshBasicMaterial({ color: 0x14100e, side: THREE.BackSide });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uOutline = { value: width };
+    sh.vertexShader = 'uniform float uOutline;\n' + sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = vec3(position) + normal * uOutline;');
+  };
+  return m;
+}
+
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.
 const B = (n: string) => `mixamorig${n}`;
 const clean = (n: string) => n.replace(/[^\w-]/g, '');
@@ -84,6 +105,9 @@ export class Avatar implements Actor {
   private gesture = 0;
   private scene: THREE.Group;
   private statue = false;
+  private parts: { mesh: THREE.Mesh; real: THREE.Material | THREE.Material[]; toon: THREE.Material | THREE.Material[]; outline: THREE.Mesh | null }[] = [];
+  /** The look given to every avatar loaded from now on. */
+  static defaultLook: Look = 'real';
 
   static async load(name: string, url: string, seated: boolean): Promise<Avatar> {
     const gltf = await new GLTFLoader().loadAsync(url);
@@ -109,6 +133,7 @@ export class Avatar implements Actor {
     });
     this.head = this.bones.get(B('Head')) ?? scene;
     this.root.updateMatrixWorld(true);
+    if (!(name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT'))) this.buildLooks();
     if (name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT')) {
       // a metal figure: one material, no life in it
       const metal = name === 'WRECK'
@@ -144,6 +169,43 @@ export class Avatar implements Actor {
     this.root.updateMatrixWorld(true);
     const hipsBone = this.bones.get(B('Hips'));
     this.hipY = hipsBone ? hipsBone.getWorldPosition(new THREE.Vector3()).y - this.root.getWorldPosition(new THREE.Vector3()).y : 0.6;
+  }
+
+  /** Prepares a toon material and an outline hull for every mesh, so the look can switch at any time. */
+  private buildLooks(): void {
+    this.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || (m as unknown as { isOutline?: boolean }).isOutline) return;
+      const toonOf = (mat: THREE.Material) => {
+        const s = mat as THREE.MeshStandardMaterial;
+        // the emissive copy of the map is a flat fill, so the unlit side keeps its colour instead of going black
+        return new THREE.MeshToonMaterial({ color: s.color, map: s.map ?? null, emissive: 0x2a2a2a, emissiveMap: s.map ?? null, gradientMap, transparent: s.transparent, alphaTest: s.alphaTest, side: s.side, depthWrite: true });
+      };
+      const real = m.material;
+      const toon = Array.isArray(real) ? real.map(toonOf) : toonOf(real);
+      let outline: THREE.Mesh | null = null;
+      if (!NO_OUTLINE.test(m.name)) {
+        const scale = m.getWorldScale(new THREE.Vector3()).y || 1;
+        outline = m.clone();
+        (outline as unknown as { isOutline: boolean }).isOutline = true;
+        outline.material = outlineMaterial(0.004 / scale);
+        outline.position.set(0, 0, 0); outline.quaternion.identity(); outline.scale.set(1, 1, 1);
+        if (m.morphTargetInfluences) outline.morphTargetInfluences = m.morphTargetInfluences;
+        outline.visible = false;
+        m.add(outline);
+      }
+      this.parts.push({ mesh: m, real, toon, outline });
+    });
+    this.setLook(Avatar.defaultLook);
+  }
+
+  /** Switches between the exported materials and the toon look. */
+  setLook(look: Look): void {
+    if (this.statue) return;
+    for (const p of this.parts) {
+      p.mesh.material = look === 'toon' ? p.toon : p.real;
+      if (p.outline) p.outline.visible = look === 'toon';
+    }
   }
 
   private hipY = 0.6;
@@ -209,6 +271,11 @@ export class Avatar implements Actor {
   }
 
   dispose(): void {
+    for (const p of this.parts) {
+      for (const mat of Array.isArray(p.toon) ? p.toon : [p.toon]) mat.dispose();
+      if (p.outline) (p.outline.material as THREE.Material).dispose();
+      p.mesh.material = p.real;
+    }
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;
       if (m.isMesh) {
