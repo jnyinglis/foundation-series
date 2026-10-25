@@ -145,6 +145,7 @@ function dateText(): string {
 
 let captureMode = false;
 let captureReq: { resolve: (dataUrl: string) => void; frames: number } | null = null;
+let captureRig: { key: THREE.SpotLight; rim: THREE.PointLight; scene: THREE.Scene; base: Map<THREE.Light, number> } | null = null;
 let captureSize: { w: number; h: number } | null = null;
 function shipMayFly(): boolean {
   return started && !mapOpen && !jumping && !storyLock && !dialogue.open && !captureMode && view !== 'interior';
@@ -664,6 +665,23 @@ const capture = {
   ship(pos: [number, number, number], lookAt: [number, number, number], fov = 55): void { ship.reset(new THREE.Vector3(...pos), new THREE.Vector3(...lookAt)); ship.throttle = 0; ship.speed = 0; camera.fov = fov; camera.updateProjectionMatrix(); },
   chart(pos: [number, number, number], target: [number, number, number], select?: string): void { if (!mapOpen) openMap(); if (select) map.select(worldById(select)); map.camera.position.set(...pos); map.controls.target.set(...target); map.controls.update(); },
   worldPos(id: string): number[] { return worldById(id).pos; },
+  /** A key and rim light for one actor, placed relative to the camera. The room's own lights can be dimmed. */
+  rig(name: string, o: Partial<{ key: number; rim: number; keyColor: number; rimColor: number; room: number; side: number; height: number }> = {}): void {
+    if (!interior) return;
+    const a = interior.figures.get(name); if (!a) return;
+    if (!captureRig || captureRig.scene !== interior.scene) {
+      const key = new THREE.SpotLight(0xfff0dc, 0, 40, 0.75, 0.6, 1.0); const rim = new THREE.PointLight(0x9fd0ff, 0, 24, 1.4);
+      interior.scene.add(key, key.target, rim); captureRig = { key, rim, scene: interior.scene, base: new Map() };
+    }
+    const head = a.root.position.clone(); head.y = 1.5;
+    const dir = interior.playerPos.clone().sub(head); dir.y = 0; dir.normalize();
+    const left = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(o.side ?? 1);
+    const kp = head.clone().addScaledVector(dir, 2.2).addScaledVector(left, 1.6); kp.y = (o.height ?? 2.6);
+    const rp = head.clone().addScaledVector(dir, -1.6).addScaledVector(left, -0.9); rp.y = 2.3;
+    captureRig.key.position.copy(kp); captureRig.key.target.position.copy(head); captureRig.key.intensity = o.key ?? 6; captureRig.key.color.set(o.keyColor ?? 0xfff0dc);
+    captureRig.rim.position.copy(rp); captureRig.rim.intensity = o.rim ?? 3; captureRig.rim.color.set(o.rimColor ?? 0x9fd0ff);
+    if (o.room !== undefined) interior.scene.traverse((obj) => { const l = obj as THREE.Light; if (!(l as THREE.Light).isLight || l === captureRig!.key || l === captureRig!.rim) return; if (!captureRig!.base.has(l)) captureRig!.base.set(l, l.intensity); l.intensity = captureRig!.base.get(l)! * o.room!; });
+  },
   comic(o: Partial<{ levels: number; edge: number; lo: number; hi: number; halftone: number; dot: number; saturation: number; enabled: boolean }>): void {
     const u = comicPass.uniforms; if (o.levels !== undefined) u.uLevels.value = o.levels; if (o.edge !== undefined) u.uEdge.value = o.edge; if (o.lo !== undefined) u.uEdgeLo.value = o.lo; if (o.hi !== undefined) u.uEdgeHi.value = o.hi;
     if (o.halftone !== undefined) u.uHalftone.value = o.halftone; if (o.dot !== undefined) u.uDot.value = o.dot; if (o.saturation !== undefined) u.uSaturation.value = o.saturation; if (o.enabled !== undefined) comicPass.enabled = o.enabled;

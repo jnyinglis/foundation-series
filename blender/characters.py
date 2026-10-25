@@ -37,7 +37,7 @@ CHARACTERS = {
     'taren': dict(
         macro=dict(gender=0.92, age=0.5, muscle=0.55, weight=0.48, proportions=0.7, height=0.62, cupsize=0.5, firmness=0.5, race=race(0.75, 0.15, 0.1)),
         skin='middleage_caucasian_male.mhmat', hair='short01.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
-        clothes=['male_worksuit01.mhclo', 'culturalibre_male_boots.mhclo'],
+        clothes=['male_casualsuit05.mhclo', 'culturalibre_male_boots.mhclo'],
     ),
     'greycoat': dict(
         macro=dict(gender=0.95, age=0.55, muscle=0.5, weight=0.5, proportions=0.55, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.6, 0.3, 0.1)),
