@@ -8,6 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { WORLDS, START_WORLD_ID, FUEL_CAPACITY, distance, worldById, type World } from './data/worlds';
 import { StarSystem } from './system';
 import { Ship } from './ship';
+import { IS_TOUCH, TouchControls } from './touch';
 import { GalaxyMap } from './galaxy';
 import { Hud } from './hud';
 import { AudioEngine } from './audio';
@@ -63,7 +64,7 @@ function saveState(s: SaveState): void {
 // ---------------------------------------------------------------- renderer
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-const MAX_PR = Math.min(window.devicePixelRatio, 1.5);
+const MAX_PR = Math.min(window.devicePixelRatio, IS_TOUCH ? 1.0 : 1.5);
 let pixelRatio = MAX_PR;
 renderer.setPixelRatio(pixelRatio);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -182,7 +183,7 @@ async function enterInterior(name = 'cantina', opts: EnterOptions = {}): Promise
   view = 'interior';
   ship.releasePointer();
   hud.setMarker(0, 0, false, false, 0, '');
-  hud.showMessage(`${interiorLabel}. Click to look, WASD to walk. L returns to the ship.`, 5000);
+  hud.showMessage(IS_TOUCH ? `${interiorLabel}. Drag left to walk, right to look. Return goes back to the ship.` : `${interiorLabel}. Click to look, WASD to walk. L returns to the ship.`, 5000);
   audio.blip(900);
 }
 function leaveInterior(): void {
@@ -424,7 +425,7 @@ function start(mode: Mode, fresh = false): void {
     if (loaded) void story!.fire({ type: 'arrive', world: world.id });
   } else {
     if (loaded) void story!.fire({ type: 'arrive', world: world.id });
-    hud.showMessage(`Welcome to ${world.name}. Press H for controls.`, 5000);
+    hud.showMessage(IS_TOUCH ? `Welcome to ${world.name}. Landscape works best. Tap HELP for the controls.` : `Welcome to ${world.name}. Press H for controls.`, 5000);
   }
 }
 btnExplore.addEventListener('click', () => start('explore'));
@@ -435,7 +436,30 @@ renderPass.scene = system.scene;
 hud.setSystem(world);
 placeShip();
 
-canvas.addEventListener('click', () => { if (view === 'interior' && !storyLock && !dialogue.open && !document.pointerLockElement) canvas.requestPointerLock(); });
+canvas.addEventListener('click', () => { if (!IS_TOUCH && canvas.requestPointerLock && view === 'interior' && !storyLock && !dialogue.open && !document.pointerLockElement) canvas.requestPointerLock(); });
+
+// ---------------------------------------------------------------- touch controls
+const touch = IS_TOUCH ? new TouchControls((code) => window.dispatchEvent(new KeyboardEvent('keydown', { code, bubbles: true }))) : null;
+document.getElementById('map-close-btn')!.addEventListener('click', () => closeMap());
+/** Status hints differ between keyboard and touch. */
+const HINT = IS_TOUCH
+  ? { fly: 'DRAG LEFT TO STEER · SLIDER FOR THROTTLE', city: 'TRANTOR · ATMOSPHERIC FLIGHT · LAND BUTTON TO RETURN', walk: 'DRAG LEFT TO WALK · DRAG RIGHT TO LOOK' }
+  : { fly: 'CLICK TO FLY · M MAP · H HELP', city: 'CLICK TO FLY · L TO RETURN TO ORBIT', walk: 'CLICK TO LOOK · WASD TO WALK · L TO RETURN' };
+function updateTouch(): void {
+  if (!touch) return;
+  const active = started && !mapOpen && !jumping && !storyLock && !dialogue.open;
+  const mode = !active ? 'none' : view === 'interior' ? 'walk' : 'flight';
+  touch.setMode(mode, started && !jumping, view === 'space' ? 'LAND' : 'RETURN', ship.throttle);
+  const t = touch.consume();
+  if (mode === 'flight') {
+    ship.touchPitch = touch.state.stickY; ship.touchYaw = touch.state.stickX; ship.touchBoost = touch.state.boost;
+    if (t.throttle !== null) ship.throttle = t.throttle;
+  } else { ship.touchPitch = 0; ship.touchYaw = 0; ship.touchBoost = false; }
+  if (interior) {
+    if (mode === 'walk') { interior.touchMove.x = touch.state.stickX; interior.touchMove.y = touch.state.stickY; interior.addLook(t.lookDX, t.lookDY); }
+    else { interior.touchMove.x = 0; interior.touchMove.y = 0; }
+  }
+}
 
 // ---------------------------------------------------------------- sound prompt and debug readout
 const soundPrompt = document.getElementById('sound-prompt')!;
@@ -475,6 +499,7 @@ function frame(): void {
   const dt = Math.min(clock.getDelta(), 0.05);
   timeAcc += dt;
   const w = window.innerWidth, h = window.innerHeight;
+  updateTouch();
 
   if (jumping) {
     jumpT += dt / JUMP_SECONDS;
@@ -530,7 +555,7 @@ function frame(): void {
     }
     hud.setFlight(ship.speed, ship.throttle, ship.boost, ship.position.y / 10, state.fuel, FUEL_CAPACITY, state.credits, dateText());
     audio.setThrottle(ship.throttle, ship.boost);
-    hud.setStatus(storyLock ? 'STORY' : ship.isLocked ? 'TRANTOR · ATMOSPHERIC FLIGHT · L TO RETURN' : 'CLICK TO FLY · L TO RETURN TO ORBIT', '');
+    hud.setStatus(storyLock ? 'STORY' : ship.isLocked ? 'TRANTOR · ATMOSPHERIC FLIGHT · L TO RETURN' : HINT.city, '');
   } else if (view === 'interior' && interior) {
     ship.update(dt, 0);
     interior.inputEnabled = !storyLock && !dialogue.open;
@@ -539,7 +564,7 @@ function frame(): void {
     camera.updateMatrixWorld();
     audio.setThrottle(0, false);
     hud.setFlight(0, 0, false, 0, state.fuel, FUEL_CAPACITY, state.credits, dateText());
-    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${interiorLabel.toUpperCase()} · L TO RETURN` : 'CLICK TO LOOK · WASD TO WALK · L TO RETURN', '');
+    hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${interiorLabel.toUpperCase()} · L TO RETURN` : HINT.walk, '');
   } else {
     ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);
@@ -588,7 +613,7 @@ function frame(): void {
       orbiting = false;
     }
     const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon', 'aurora', 'solaria', 'alpha', 'earth', 'kalgan', 'rossem', 'terminus', 'melpomenia'].includes(world.id);
-    if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
+    if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? (IS_TOUCH ? ' · LAND BUTTON' : ' · L TO LAND') : ''}` : ship.isLocked ? 'FLIGHT' : HINT.fly, orbiting ? 'ok' : '');
   }
 
   if (started && !jumping) adaptQuality(dt);

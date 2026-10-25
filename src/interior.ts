@@ -189,6 +189,10 @@ export class Interior {
   private onKeyUp = (e: KeyboardEvent) => { this.keys.delete(e.code); };
   private onMouse = (e: MouseEvent) => { if (document.pointerLockElement) { this.mouseDX += e.movementX; this.mouseDY += e.movementY; } };
   inputEnabled = true;
+  /** Touch stick, -1..1: x strafes, y walks. */
+  touchMove = { x: 0, y: 0 };
+  /** Adds look movement from a touch drag, in pixels. */
+  addLook(dx: number, dy: number): void { this.mouseDX += dx * 1.6; this.mouseDY += dy * 1.6; }
   private fireLight: THREE.PointLight | null = null;
   private bounds = { x: 10.4, z: 7.4 };
   /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
@@ -510,6 +514,8 @@ export class Interior {
       if (this.keys.has('KeyS')) move.sub(fwd);
       if (this.keys.has('KeyD')) move.sub(right);
       if (this.keys.has('KeyA')) move.add(right);
+      if (Math.abs(this.touchMove.y) > 0.15) move.addScaledVector(fwd, this.touchMove.y);
+      if (Math.abs(this.touchMove.x) > 0.15) move.addScaledVector(right, -this.touchMove.x);
       if (move.lengthSq() > 0) {
         move.normalize().multiplyScalar(dt * (this.keys.has('ShiftLeft') ? 4.5 : 2.6));
         const next = this.playerPos.clone().add(move);

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { IS_TOUCH } from './touch';
 
 export class Ship {
   readonly position = new THREE.Vector3();
@@ -11,6 +12,10 @@ export class Ship {
   readonly boostSpeed = 3200;
   /** Scales top speed, for atmospheric flight. */
   speedScale = 1;
+  /** Touch stick input, -1..1, added to the keyboard and mouse. */
+  touchPitch = 0;
+  touchYaw = 0;
+  touchBoost = false;
   private keys = new Set<string>();
   private mouseDX = 0;
   private mouseDY = 0;
@@ -29,7 +34,7 @@ export class Ship {
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => this.keys.clear());
     canvas.addEventListener('click', () => {
-      if (this.enabled && !this.locked) canvas.requestPointerLock();
+      if (this.enabled && !this.locked && !IS_TOUCH && canvas.requestPointerLock) canvas.requestPointerLock();
     });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === canvas;
@@ -66,7 +71,7 @@ export class Ship {
     // throttle
     if (k.has('KeyW')) this.throttle = Math.min(1, this.throttle + dt * 0.6);
     if (k.has('KeyS')) this.throttle = Math.max(0, this.throttle - dt * 0.6);
-    this.boost = k.has('ShiftLeft') || k.has('ShiftRight');
+    this.boost = k.has('ShiftLeft') || k.has('ShiftRight') || this.touchBoost;
 
     // rotation targets
     let pitch = 0, yaw = 0, roll = 0;
@@ -78,6 +83,8 @@ export class Ship {
     if (k.has('KeyE')) roll -= 1;
     if (k.has('KeyA')) roll += 1;
     if (k.has('KeyD')) roll -= 1;
+    pitch += this.touchPitch * 0.9;
+    yaw += -this.touchYaw * 0.9;
     pitch += -this.mouseDY * 0.012;
     yaw += -this.mouseDX * 0.012;
     this.mouseDX = 0;

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Foundation</title>
 </head>
 <body>
@@ -32,7 +34,7 @@
     <div id="info" class="info"></div>
     <div id="help" class="help">
       <h3>CONTROLS</h3>
-      <table>
+      <table class="help-keys">
         <tr><td>Click</td><td>capture the mouse and fly</td></tr>
         <tr><td>Mouse / Arrows</td><td>pitch and yaw</td></tr>
         <tr><td>Q E or A D</td><td>roll</td></tr>
@@ -48,6 +50,15 @@
         <tr><td>L</td><td>land / return to orbit (Trantor, Radole)</td></tr>
         <tr><td>H</td><td>this panel</td></tr>
         <tr><td>Esc</td><td>release the mouse / close</td></tr>
+      </table>
+      <table class="help-touch">
+        <tr><td>Left side</td><td>drag to steer, or to walk in a room</td></tr>
+        <tr><td>Right side</td><td>drag to look around a room</td></tr>
+        <tr><td>Slider</td><td>throttle</td></tr>
+        <tr><td>Boost</td><td>hold for full burn</td></tr>
+        <tr><td>Chart</td><td>tap a star, then Jump. Pinch to zoom.</td></tr>
+        <tr><td>Land</td><td>land when in orbit, or return to the ship</td></tr>
+        <tr><td>Tap text</td><td>advance dialogue</td></tr>
       </table>
       <p>Fly to within orbit range of a planet to refuel.</p>
     </div>
@@ -66,6 +77,21 @@
   <button id="sound-prompt" class="sound-prompt">🔇 Tap to enable sound</button>
   <div id="debug" class="debug" style="display:none"></div>
 
+  <div id="touch" data-mode="none">
+    <div id="touch-left" class="touch-zone"></div>
+    <div id="touch-right" class="touch-zone"></div>
+    <div id="stick" class="stick"><div id="stick-knob" class="stick-knob"></div></div>
+    <div id="throttle" class="throttle"><div id="throttle-fill" class="throttle-fill"></div><span class="throttle-label">THR</span></div>
+    <button id="boost" class="boost" type="button">BOOST</button>
+    <div id="cmdbar" class="cmdbar">
+      <button type="button" data-code="KeyM">CHART</button>
+      <button type="button" data-code="KeyL" id="cmd-land">LAND</button>
+      <button type="button" data-code="KeyK">JOURNAL</button>
+      <button type="button" data-code="KeyI">INFO</button>
+      <button type="button" data-code="KeyH">HELP</button>
+      <button type="button" data-code="KeyV">VOICE</button>
+    </div>
+  </div>
   <div id="map-labels"></div>
   <div id="map-panel" class="map-panel">
     <div class="map-head">GALACTIC CHART</div>
@@ -78,7 +104,7 @@
       <span><i class="dot range"></i>in range</span>
       <span><i class="dot far"></i>beyond range</span>
     </div>
-    <div class="map-close">M or Esc to close</div>
+    <div class="map-close"><span class="help-keys">M or Esc to close</span><button id="map-close-btn" class="map-close-btn" type="button">CLOSE</button></div>
   </div>
 
   <div id="intro">
