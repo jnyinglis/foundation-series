@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Second Mind · Chapter Two · Radole</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@500;700&display=swap">
+<style>
+/* A pilot comic: US comic page, nine-panel grid, engine panels and drawn panels mixed. */
+:root { --paper: #efe7d6; --ink: #111; --bone: #f6efdc; --steel: #1b2838; --amber: #e3b24f; --cyan: #3fd4ff; --gutter: 0.11in; --margin: 0.34in; }
+* { box-sizing: border-box; }
+html { background: #15181d; }
+body { margin: 0; font-family: 'Crimson Pro', Georgia, serif; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px 12px; }
+.page { position: relative; width: 6.625in; height: 10.25in; background: var(--paper); box-shadow: 0 10px 40px rgba(0,0,0,0.6); overflow: hidden; break-after: page; page-break-after: always; }
+.grid { position: absolute; inset: var(--margin); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: var(--gutter); }
+.panel { position: relative; overflow: hidden; background: #000; border: 2.5px solid var(--ink); }
+.panel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.panel.w2 { grid-column: span 2; } .panel.w3 { grid-column: span 3; } .panel.h2 { grid-row: span 2; }
+.panel.black { background: #050607; }
+.panel.choice { border: 2.5px dashed var(--amber); }
+.zoom img { transform: scale(1.6); } .zoom2 img { transform: scale(2.1); }
+.pos-l img { object-position: 20% 50%; } .pos-face img { object-position: 30% 12%; transform: scale(1.45); transform-origin: 30% 12%; } .cap.wide { max-width: 88%; } .pos-r img { object-position: 85% 50%; } .pos-t img { object-position: 50% 15%; } .pos-c img { object-position: 50% 35%; }
+/* lettering */
+.cap { position: absolute; max-width: 62%; padding: 4px 7px 5px; background: var(--bone); border: 1.5px solid var(--ink); font: 400 9.6px/1.25 'Crimson Pro', Georgia, serif; letter-spacing: 0.01em; box-shadow: 2px 2px 0 var(--ink); }
+.cap.v { background: var(--steel); color: var(--amber); border-color: #000; font: 500 8.4px/1.3 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
+.cap.v::before { content: 'TAREN · '; color: var(--cyan); }
+.cap.title { background: var(--ink); color: var(--paper); font: 700 11px/1.1 'Oswald', sans-serif; letter-spacing: 0.22em; text-transform: uppercase; max-width: 80%; box-shadow: 2px 2px 0 var(--amber); }
+.tl { left: 6px; top: 6px; } .tr { right: 6px; top: 6px; } .bl { left: 6px; bottom: 6px; } .br { right: 6px; bottom: 6px; } .tc { left: 50%; top: 6px; transform: translateX(-50%); } .bc { left: 50%; bottom: 6px; transform: translateX(-50%); }
+.bal { position: absolute; max-width: 58%; padding: 6px 9px 7px; background: #fff; color: var(--ink); border: 1.8px solid var(--ink); border-radius: 14px; font: 400 10.2px/1.2 'Patrick Hand SC', 'Comic Sans MS', cursive; text-transform: uppercase; letter-spacing: 0.01em; text-align: center; }
+.bal.off { border-radius: 2px; border-style: solid; border-width: 1.8px; }
+.bal::after, .bal::before { content: ''; position: absolute; width: 0; height: 0; }
+.bal.t-bl::after { left: 18px; bottom: -11px; border-left: 4px solid transparent; border-right: 9px solid transparent; border-top: 12px solid var(--ink); }
+.bal.t-bl::before { left: 20px; bottom: -8px; border-left: 3px solid transparent; border-right: 7px solid transparent; border-top: 10px solid #fff; z-index: 1; }
+.bal.t-br::after { right: 18px; bottom: -11px; border-right: 4px solid transparent; border-left: 9px solid transparent; border-top: 12px solid var(--ink); }
+.bal.t-br::before { right: 20px; bottom: -8px; border-right: 3px solid transparent; border-left: 7px solid transparent; border-top: 10px solid #fff; z-index: 1; }
+.bal.t-tl::after { left: 18px; top: -11px; border-left: 4px solid transparent; border-right: 9px solid transparent; border-bottom: 12px solid var(--ink); }
+.bal.t-tl::before { left: 20px; top: -8px; border-left: 3px solid transparent; border-right: 7px solid transparent; border-bottom: 10px solid #fff; z-index: 1; }
+.bal .who { display: block; font: 500 7px/1 'JetBrains Mono', monospace; letter-spacing: 0.18em; color: #666; margin-bottom: 3px; }
+.sfx { position: absolute; font: 700 22px/1 'Oswald', sans-serif; letter-spacing: 0.1em; color: var(--amber); -webkit-text-stroke: 1px var(--ink); text-shadow: 3px 3px 0 var(--ink); transform: rotate(-6deg); }
+.folio { position: absolute; bottom: 0.14in; right: var(--margin); font: 500 7.5px/1 'JetBrains Mono', monospace; letter-spacing: 0.2em; color: #6b6253; }
+.folio.l { right: auto; left: var(--margin); }
+/* cover */
+.cover { background: #000; }
+.cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cover .mast { position: absolute; left: 0.4in; right: 0.4in; top: 0.42in; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+.cover .kicker { font: 500 9px/1 'JetBrains Mono', monospace; letter-spacing: 0.34em; color: var(--cyan); }
+.cover h1 { margin: 6px 0 0; font: 700 44px/1 'Oswald', sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
+.cover h2 { margin: 6px 0 0; font: 400 15px/1.2 'Crimson Pro', serif; font-style: italic; letter-spacing: 0.06em; color: #e8e0cc; }
+.cover .chap { position: absolute; left: 0.4in; bottom: 0.5in; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.95); }
+.cover .chap b { display: block; font: 700 26px/1 'Oswald', sans-serif; letter-spacing: 0.26em; text-transform: uppercase; }
+.cover .chap span { display: block; margin-top: 6px; font: 500 8.5px/1.5 'JetBrains Mono', monospace; letter-spacing: 0.22em; color: var(--amber); }
+/* back matter */
+.matter { position: absolute; inset: var(--margin); display: grid; grid-template-columns: 1fr 1fr; gap: 0.22in; font-size: 10.6px; line-height: 1.38; }
+.matter h3 { margin: 0 0 4px; font: 700 12px/1.1 'Oswald', sans-serif; letter-spacing: 0.26em; text-transform: uppercase; border-bottom: 2px solid var(--ink); padding-bottom: 4px; }
+.matter h4 { margin: 10px 0 2px; font: 600 10.5px/1.2 'Crimson Pro', serif; letter-spacing: 0.04em; text-transform: uppercase; }
+.matter p { margin: 0 0 6px; text-align: justify; hyphens: auto; }
+.matter .plate { width: 100%; border: 1.5px solid var(--ink); display: block; margin: 4px 0 6px; }
+.matter .journal { background: var(--steel); color: #d8e2ee; padding: 8px 10px; border: 1.5px solid #000; font: 400 8.6px/1.45 'JetBrains Mono', monospace; }
+.matter .journal b { color: var(--amber); font-weight: 500; }
+.matter .ref { font-size: 8.4px; color: #5b5346; }
+.small { font-size: 8.6px; color: #5b5346; letter-spacing: 0.06em; }
+@media print { html { background: #fff; } body { padding: 0; gap: 0; } .page { box-shadow: none; } }
+@page { size: 6.625in 10.25in; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="page cover">
+  <img src="art/cover.webp" alt="Twilight City hangs from the cliffs of Radole at the edge of the ice">
+  <div class="mast"><div class="kicker">ISAAC ASIMOV'S WORLDS · A FAN PROJECT</div><h1>Foundation</h1><h2>The Second Mind</h2></div>
+  <div class="chap"><b>Chapter Two</b><span>RADOLE · A PILOT OF EIGHT PAGES · F.E. 210</span></div>
+</section>
+
+<!-- PAGE 1: arrival -->
+<section class="page">
+  <div class="grid">
+    <div class="panel w3"><img src="panels/s1-radole.jpg" alt=""><div class="cap title tl">Chapter Two · Radole</div><div class="cap br">Radole. A ribbon world. One face burns under its sun, the other is ice to the core.</div></div>
+    <div class="panel"><img src="panels/s4-sunward.jpg" alt=""><div class="cap tl">Life keeps to the strip of twilight between them.</div></div>
+    <div class="panel black"><img src="panels/s5-ice.jpg" alt=""></div>
+    <div class="panel pos-r"><img src="panels/s2-strip.jpg" alt=""><div class="cap bl">The Traders built their city there, in the long shadow.</div></div>
+    <div class="panel w2"><img src="art/ilen-case.webp" alt=""><div class="cap tl">Ilen opens the second case for the first time.</div></div>
+    <div class="panel zoom"><img src="art/reader.webp" alt=""><div class="cap bl">Inside is a single reel, and a reader that must be older than the Foundation.</div></div>
+  </div>
+  <div class="folio">1</div>
+</section>
+
+<!-- PAGE 2: the index -->
+<section class="page">
+  <div class="grid">
+    <div class="panel pos-face"><img src="art/ilen-case.webp" alt=""><div class="bal t-bl br"><span class="who">ILEN</span>This is what my mentor found. An Imperial Library index, cross-referenced to a world called Earth.</div></div>
+    <div class="panel"><img src="art/reader.webp" alt=""><div class="bal off tl"><span class="who">ILEN</span>Every other copy in the Galaxy has the entry removed. This one was mis-shelved for two thousand years.</div></div>
+    <div class="panel"><img src="panels/c4-ilen.jpg" alt=""><div class="bal t-bl tr"><span class="who">ILEN</span>He filed it with the Encyclopedia. Three days later he was dead. A fall. The Board closed the file.</div></div>
+    <div class="panel w3"><img src="panels/s3-far.jpg" alt=""><div class="cap v tl">You feel the directive move in you, like a compass needle.</div><div class="cap v br">Find the origin. For the first time, it has a name.</div></div>
+    <div class="panel pos-r"><img src="panels/s2-strip.jpg" alt=""><div class="cap tl">Twilight City hangs from the cliffs at the edge of the ice.</div></div>
+    <div class="panel pos-c zoom"><img src="art/cover.webp" alt=""><div class="cap bl">You dock in a cavern that smells of fuel and cold.</div></div>
+    <div class="panel"><img src="panels/c1-wide.jpg" alt=""><div class="cap bl">The cantina is the only warm room on the planet.</div></div>
+  </div>
+  <div class="folio l">2</div>
+</section>
+
+<!-- PAGE 3: Corin -->
+<section class="page">
+  <div class="grid">
+    <div class="panel w2"><img src="panels/c1-wide.jpg" alt=""><div class="cap tl">A woman in a Trader jacket with the patches cut off puts her glass down at your table before you can object.</div></div>
+    <div class="panel"><img src="panels/c2-corin.jpg" alt=""><div class="bal t-bl tr"><span class="who">CORIN</span>Corin Pellis.</div></div>
+    <div class="panel"><img src="panels/c3-corin-close.jpg" alt=""><div class="bal t-bl tl"><span class="who">CORIN</span>I had a ship until Tuesday. Kalganian lenders have it now.</div></div>
+    <div class="panel zoom"><img src="panels/c2-corin.jpg" alt=""><div class="bal t-bl tr"><span class="who">CORIN</span>You are the only hull in this port that is not a lender's. So I am going to make you an offer.</div></div>
+    <div class="panel zoom pos-t"><img src="panels/c3-corin-close.jpg" alt=""><div class="bal t-bl tl"><span class="who">CORIN</span>You are going into the old Imperial frontier.</div></div>
+    <div class="panel w3"><img src="panels/m1-chart.jpg" alt=""><div class="bal off tl"><span class="who">CORIN</span>Nobody comes to Radole to go anywhere else. The route through Horleggor and Arcturus is not on the Foundation charts.</div><div class="bal off br"><span class="who">CORIN</span>It is in my head.</div></div>
+  </div>
+  <div class="folio">3</div>
+</section>
+
+<!-- PAGE 4: the choice -->
+<section class="page">
+  <div class="grid">
+    <div class="panel choice"><img src="panels/c11-corin-still.jpg" alt=""><div class="cap title tl">1 · Hire her</div><div class="cap bl">A share of the cargo profits.</div></div>
+    <div class="panel choice zoom"><img src="panels/c2-corin.jpg" alt=""><div class="cap title tl">2 · Pay her debt</div><div class="cap bl">Five hundred credits, and she owes you.</div></div>
+    <div class="panel choice zoom pos-t"><img src="panels/c3-corin-close.jpg" alt=""><div class="cap title tl">3 · Refuse</div><div class="cap bl">You do not need a navigator.</div></div>
+    <div class="panel w3"><img src="panels/c11-corin-still.jpg" alt=""><div class="cap v tl">She shakes your hand. Her grip is strong and her palm is warm, and the sense, which you did not open, opens anyway.</div><div class="cap v br">Ambition, worry, and under them something steady. She means it.</div></div>
+    <div class="panel zoom pos-t"><img src="panels/c11-corin-still.jpg" alt=""><div class="bal t-bl tl"><span class="who">CORIN</span>Good. We lift at the next window.</div></div>
+    <div class="panel"><img src="panels/c10-door.jpg" alt=""><div class="cap tl">On the way back to the Kestrel...</div></div>
+    <div class="panel"><img src="panels/c5-greycoat-wide.jpg" alt=""><div class="cap bl">...a man in a grey coat asks the dockmaster about an Encyclopedist travelling alone.</div></div>
+  </div>
+  <div class="folio l">4</div>
+</section>
+
+<!-- PAGE 5: the grey coat -->
+<section class="page">
+  <div class="grid">
+    <div class="panel w2"><img src="panels/c5-greycoat-wide.jpg" alt=""><div class="cap tl">He is polite. He does not look at you.</div></div>
+    <div class="panel h2"><img src="art/grey-coat.webp" alt=""></div>
+    <div class="panel w2"><img src="panels/c6-greycoat-close.jpg" alt=""><div class="cap v bl">You open the sense, carefully.</div></div>
+    <div class="panel black"><div class="cap v tl">There is nothing to read.</div><div class="cap v br">Not calm. Not control.</div></div>
+    <div class="panel black"><div class="cap v tc">Nothing at all, where a mind should be.</div></div>
+    <div class="panel"><img src="panels/c8-taren-close.jpg" alt=""><div class="cap v bl">You have met only one other mind like that.</div></div>
+  </div>
+  <div class="folio">5</div>
+</section>
+
+<!-- PAGE 6: it is yours -->
+<section class="page">
+  <div class="grid">
+    <div class="panel w3"><img src="art/taren-mirror.webp" alt=""><div class="cap v br">It is yours.</div></div>
+    <div class="panel"><img src="panels/c7-taren.jpg" alt=""><div class="cap tl">Ilen is already aboard. Corin is checking the drive.</div></div>
+    <div class="panel pos-l"><img src="panels/c4-ilen.jpg" alt=""></div>
+    <div class="panel zoom pos-t"><img src="panels/c11-corin-still.jpg" alt=""><div class="cap v bl">You do not tell either of them what you felt.</div></div>
+    <div class="panel w2"><img src="panels/s1-radole.jpg" alt=""><div class="bal off tl"><span class="who">ILEN</span>Siwenna, then. The old Imperial archive. If the index came from anywhere, it came from there.</div></div>
+    <div class="panel zoom"><img src="panels/m1-chart.jpg" alt=""><div class="cap bl">Horleggor. Arcturus. Siwenna.</div></div>
+  </div>
+  <div class="folio l">6</div>
+</section>
+
+<!-- PAGE 7: the frontier -->
+<section class="page">
+  <div class="grid">
+    <div class="panel w3"><img src="panels/a1-horleggor.jpg" alt=""><div class="cap tl">Horleggor. Corin points at nothing in particular through the viewport.</div><div class="bal off br"><span class="who">CORIN</span>Riose beat the Foundation fleet right there. Won every battle he fought.</div></div>
+    <div class="panel zoom"><img src="panels/c2-corin.jpg" alt=""><div class="bal t-bl tr"><span class="who">CORIN</span>Then the Emperor recalled him and had him shot. A general who wins is a general who might not stop.</div></div>
+    <div class="panel pos-l"><img src="panels/c4-ilen.jpg" alt=""><div class="bal t-bl tr"><span class="who">ILEN</span>It is in the Encyclopedia. We call it the Riose Crisis. Seldon predicted it.</div></div>
+    <div class="panel zoom pos-t"><img src="panels/c3-corin-close.jpg" alt=""><div class="bal t-bl tl"><span class="who">CORIN</span>Seldon predicted a dead general. Lovely.</div></div>
+    <div class="panel w2"><img src="panels/a4-arcturus-day.jpg" alt=""><div class="cap tl">Arcturus still flies the Spaceship-and-Sun. The viceroy's cutters escort you in and ask for a tithe. Corin pays it in Foundation gadgets, and they are delighted.</div></div>
+    <div class="panel"><img src="panels/a2-arcturus-night.jpg" alt=""><div class="cap v bl wide">You watch the lights of the capital on the night side and think about how long a thing can keep its shape after it has died.</div></div>
+  </div>
+  <div class="folio">7</div>
+</section>
+
+<!-- PAGE 8: back matter -->
+<section class="page">
+  <div class="matter">
+    <div>
+      <h3>Encyclopedia Galactica</h3>
+      <h4>Radole</h4>
+      <p>RADOLE. Independent Trader world of the Periphery, tidally locked to its primary. The sunward hemisphere exceeds the boiling point of water; the far hemisphere is ice to a depth that has never been measured. Habitation is confined to the twilight strip, a band some forty kilometres wide, where the Traders' settlement, TWILIGHT CITY, is built into and hung from the cliffs of the terminator. The port is a natural cavern. The population at the time of writing is uncertain, as the Traders do not report it.</p>
+      <p>Radole gained importance after the loss of the Four Kingdoms' routes, as the last Foundation port before the old Imperial frontier. Vessels bound for the Normannic Sector or the Arcturus worlds clear from Radole or do not clear at all. The city's cantina is reported in several Trader memoirs as the only warm room on the planet. The Encyclopedia has not been able to verify this.</p>
+      <img class="plate" src="art/plate.webp" alt="Cross-section of the ribbon world Radole">
+      <p class="ref">Plate: section through Radole at the terminator, with the twilight strip and the cliff city. Encyclopedia Galactica, 116th edition, Terminus. Reproduced by permission of the Board.</p>
+    </div>
+    <div>
+      <h4>Riose, Bel · The Riose Crisis</h4>
+      <p>RIOSE, BEL. Last of the Imperial generals. In the years before F.E. 200 Riose led the Empire's final expedition against the Foundation, winning every engagement he fought, including the action off HORLEGGOR. He was recalled by the Emperor Cleon II and executed. Psychohistorians consider the recall, not the campaign, to be the crisis: a strong general could not be left to win, and a weak Emperor could not let him. SELDON's recording in the Time Vault had predicted the outcome. Riose is remembered on the frontier worlds as a man the Empire killed for competence.</p>
+      <h4>Arcturus Sector</h4>
+      <p>Former sector capital. Forty worlds answered to the viceroy at Arcturus; at the time of writing the viceroy answers to whichever fleet is within three jumps. The Spaceship-and-Sun is still flown. Tithes are assessed on arriving vessels and are commonly paid in Foundation manufactures.</p>
+      <h3 style="margin-top:14px">From the journal of the Kestrel</h3>
+      <div class="journal">
+        <p><b>Radole.</b> Corin Pellis has joined the Kestrel. She knows the frontier route. A man in a grey coat asked after Ilen. I could not read him. He had no feelings to read. I have met only one other mind like that: my own.</p>
+        <p><b>Horleggor.</b> Corin knows the frontier better than the charts do. No sign of the grey coat.</p>
+        <p style="margin:0"><b>Arcturus.</b> The Empire here is a flag and a tithe. One more jump to Siwenna.</p>
+      </div>
+      <p class="small" style="margin-top:12px">A non-commercial fan project after Isaac Asimov. Engine panels captured from the game with a comic pass. Drawn panels generated from the cast portraits. The choice on page four is the player's; the book takes the first door.</p>
+    </div>
+  </div>
+  <div class="folio l">8</div>
+</section>
+
+</body>
+</html>

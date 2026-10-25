@@ -9,6 +9,7 @@ import { WORLDS, START_WORLD_ID, FUEL_CAPACITY, distance, worldById, type World 
 import { StarSystem } from './system';
 import { Ship } from './ship';
 import { IS_TOUCH, TouchControls } from './touch';
+import { ComicShader } from './shaders/comic';
 import { GalaxyMap } from './galaxy';
 import { Hud } from './hud';
 import { AudioEngine } from './audio';
@@ -81,6 +82,12 @@ composer.addPass(renderPass);
 composer.addPass(bloom);
 composer.addPass(jumpPass);
 composer.addPass(output);
+const comicPass = new ShaderPass(ComicShader);
+comicPass.enabled = false;
+composer.addPass(comicPass);
+// a depth-only render of the scene feeds the comic outlines while capturing
+const depthRT = new THREE.WebGLRenderTarget(1, 1, { depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) });
+comicPass.uniforms.tDepth.value = depthRT.depthTexture;
 
 // ---------------------------------------------------------------- game state
 let state: SaveState = freshState('explore');
@@ -136,8 +143,11 @@ function dateText(): string {
   return `F.E. ${year} · Day ${day}`;
 }
 
+let captureMode = false;
+let captureReq: { resolve: (dataUrl: string) => void; frames: number } | null = null;
+let captureSize: { w: number; h: number } | null = null;
 function shipMayFly(): boolean {
-  return started && !mapOpen && !jumping && !storyLock && !dialogue.open && view !== 'interior';
+  return started && !mapOpen && !jumping && !storyLock && !dialogue.open && !captureMode && view !== 'interior';
 }
 
 // ---------------------------------------------------------------- places: orbit, city, interior
@@ -304,8 +314,8 @@ window.addEventListener('keydown', (e) => {
 });
 
 function resize(): void {
-  const w = window.innerWidth, h = window.innerHeight;
-  renderer.setPixelRatio(pixelRatio);
+  const w = captureSize?.w ?? window.innerWidth, h = captureSize?.h ?? window.innerHeight;
+  renderer.setPixelRatio(captureSize ? 1 : pixelRatio);
   composer.setPixelRatio(pixelRatio);
   renderer.setSize(w, h, false);
   composer.setSize(w, h);
@@ -314,6 +324,7 @@ function resize(): void {
   camera.updateProjectionMatrix();
   map.resize(w, h);
   jumpPass.uniforms.uAspect.value = w / h;
+  comicPass.uniforms.uResolution.value = [w, h];
 }
 window.addEventListener('resize', resize);
 resize();
@@ -558,7 +569,7 @@ function frame(): void {
     hud.setStatus(storyLock ? 'STORY' : ship.isLocked ? 'TRANTOR · ATMOSPHERIC FLIGHT · L TO RETURN' : HINT.city, '');
   } else if (view === 'interior' && interior) {
     ship.update(dt, 0);
-    interior.inputEnabled = !storyLock && !dialogue.open;
+    interior.inputEnabled = !storyLock && !dialogue.open && !captureMode;
     interior.setMouthLevel(audio.voiceLevel());
     interior.update(dt, timeAcc, camera);
     camera.updateMatrixWorld();
@@ -621,11 +632,50 @@ function frame(): void {
   saveTimer += dt;
   if (saveTimer > 5 && started) { saveTimer = 0; saveState(state); }
 
+  if (comicPass.enabled) {
+    const cam = renderPass.camera as THREE.PerspectiveCamera;
+    const w = captureSize?.w ?? window.innerWidth, h = captureSize?.h ?? window.innerHeight;
+    if (depthRT.width !== w || depthRT.height !== h) depthRT.setSize(w, h);
+    comicPass.uniforms.uNear.value = cam.near; comicPass.uniforms.uFar.value = cam.far;
+    renderer.setRenderTarget(depthRT); renderer.render(renderPass.scene, cam); renderer.setRenderTarget(null);
+  }
   composer.render();
+  if (captureReq && --captureReq.frames <= 0) { const r = captureReq; captureReq = null; r.resolve(renderer.domElement.toDataURL('image/png')); }
 }
 frame();
 
 // Debug handle for profiling in the browser console.
+
+// ---------------------------------------------------------------- comic capture (debug handle)
+function requestCapture(w: number, h: number): Promise<string> {
+  captureSize = { w, h }; resize();
+  return new Promise((resolve) => { captureReq = { resolve: (d) => { captureSize = null; resize(); resolve(d); }, frames: 3 }; });
+}
+const capture = {
+  begin(): void { captureMode = true; ship.enabled = false; hud.hideInfo(); hud.hideHelp(); comicPass.enabled = true; bloom.strength = 0.25; renderer.toneMappingExposure = 0.85; },
+  end(): void { captureMode = false; comicPass.enabled = false; ship.enabled = shipMayFly(); bloom.strength = 0.7; renderer.toneMappingExposure = 1.0; },
+  async place(name: string, opts: EnterOptions = {}): Promise<void> { if (mapOpen) closeMap(); if (name === 'space') { leaveCity(); leaveInterior(); } else if (name === 'city') enterCity(); else await enterInterior(name, opts); },
+  view(pos: [number, number, number], yaw: number, pitch: number, fov = 50): void { interior?.setView(pos, yaw, pitch, fov); },
+  actor(name: string, o: { talking?: boolean; mouth?: number; face?: boolean; look?: boolean }): void {
+    const a = interior?.figures.get(name); if (!a || !interior) return;
+    if (o.talking !== undefined) a.talking = o.talking; if (o.mouth !== undefined) a.mouthOpen = o.mouth;
+    if (o.face !== undefined) a.face(o.face ? interior.playerPos : null); if (o.look !== undefined) a.lookAt(o.look ? interior.playerPos : null);
+  },
+  ship(pos: [number, number, number], lookAt: [number, number, number], fov = 55): void { ship.reset(new THREE.Vector3(...pos), new THREE.Vector3(...lookAt)); ship.throttle = 0; ship.speed = 0; camera.fov = fov; camera.updateProjectionMatrix(); },
+  chart(pos: [number, number, number], target: [number, number, number], select?: string): void { if (!mapOpen) openMap(); if (select) map.select(worldById(select)); map.camera.position.set(...pos); map.controls.target.set(...target); map.controls.update(); },
+  worldPos(id: string): number[] { return worldById(id).pos; },
+  comic(o: Partial<{ levels: number; edge: number; lo: number; hi: number; halftone: number; dot: number; saturation: number; enabled: boolean }>): void {
+    const u = comicPass.uniforms; if (o.levels !== undefined) u.uLevels.value = o.levels; if (o.edge !== undefined) u.uEdge.value = o.edge; if (o.lo !== undefined) u.uEdgeLo.value = o.lo; if (o.hi !== undefined) u.uEdgeHi.value = o.hi;
+    if (o.halftone !== undefined) u.uHalftone.value = o.halftone; if (o.dot !== undefined) u.uDot.value = o.dot; if (o.saturation !== undefined) u.uSaturation.value = o.saturation; if (o.enabled !== undefined) comicPass.enabled = o.enabled;
+  },
+  async shot(name: string, w = 1200, h = 800): Promise<{ name: string; bytes: number }> {
+    const dataUrl = await requestCapture(w, h);
+    const blob = await (await fetch(dataUrl)).blob();
+    const res = await fetch(`/__capture?name=${encodeURIComponent(name)}`, { method: 'POST', body: blob });
+    return res.json() as Promise<{ name: string; bytes: number }>;
+  },
+  get planetRadius() { return system.planetRadius; },
+};
 (window as unknown as { __fdn: unknown }).__fdn = {
   renderer, composer, bloom, jumpPass, camera, ship, voice,
   get system() { return system; },
@@ -633,5 +683,5 @@ frame();
   get story() { return story; },
   get view() { return view; },
   get interior() { return interior; },
-  enterCity, enterInterior,
+  enterCity, enterInterior, capture,
 };

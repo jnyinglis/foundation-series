@@ -483,6 +483,9 @@ export class Interior {
     this.colliders.push({ min: new THREE.Vector3(px - 0.5, 0, pz - 0.5), max: new THREE.Vector3(px + 0.5, 2, pz + 0.5) });
   }
 
+  /** Places the camera directly, for captures. */
+  setView(pos: [number, number, number], yaw: number, pitch: number, fov: number): void { this.playerPos.set(pos[0], pos[1], pos[2]); this.yaw = yaw; this.pitch = pitch; this.fov = fov; this.targetFov = fov; }
+
   /** Turns the player's view toward a speaking character; null releases it. */
   focus(name: string | null): void {
     this.focusName = name && this.figures.has(name) ? name : null;
