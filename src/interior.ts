@@ -194,6 +194,9 @@ export class Interior {
   /** Adds look movement from a touch drag, in pixels. */
   addLook(dx: number, dy: number): void { this.mouseDX += dx * 1.6; this.mouseDY += dy * 1.6; }
   private fireLight: THREE.PointLight | null = null;
+  // a portrait rig that follows the camera: a warm key from above-left, a cool rim from behind the subject
+  private keyLight = new THREE.DirectionalLight(0xffe2c4, 1.3);
+  private rimLight = new THREE.DirectionalLight(0x9fb8ff, 0.9);
   private bounds = { x: 10.4, z: 7.4 };
   /** True when the baked Blender scene loaded; false means the procedural fallback is in use. */
   baked = false;
@@ -344,6 +347,8 @@ export class Interior {
         const l = new THREE.PointLight(0xffb070, 10, 12, 1.6); l.position.set(x, 4.8, z); this.scene.add(l);
       }
     }
+    this.scene.add(this.keyLight, this.keyLight.target, this.rimLight);
+    this.rimLight.target = this.keyLight.target;
     for (const c of meta.colliders) this.colliders.push({ min: new THREE.Vector3(c.min[0], c.min[1], c.min[2]), max: new THREE.Vector3(c.max[0], c.max[1], c.max[2]) });
     this.bounds = meta.bounds;
     this.playerPos.set(meta.spawn.pos[0], meta.spawn.pos[1], meta.spawn.pos[2]);
@@ -567,6 +572,11 @@ export class Interior {
     camera.fov = this.fov; camera.updateProjectionMatrix();
     camera.position.copy(this.playerPos);
     camera.quaternion.setFromEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    this.keyLight.position.copy(camera.position).addScaledVector(right, -1.6).addScaledVector(fwd, -0.4).add(new THREE.Vector3(0, 1.6, 0));
+    this.keyLight.target.position.copy(camera.position).addScaledVector(fwd, 3);
+    this.rimLight.position.copy(camera.position).addScaledVector(fwd, 7).addScaledVector(right, 1.5).add(new THREE.Vector3(0, 2.5, 0));
     for (const f of this.figures.values()) f.update(dt, time);
   }
 

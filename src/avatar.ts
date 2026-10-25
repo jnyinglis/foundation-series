@@ -133,7 +133,7 @@ export class Avatar implements Actor {
     });
     this.head = this.bones.get(B('Head')) ?? scene;
     this.root.updateMatrixWorld(true);
-    if (!(name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT'))) this.buildLooks();
+    if (!(name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT'))) { this.upgradeMaterials(); this.buildLooks(); }
     if (name === 'STATUE' || name === 'WRECK' || name.startsWith('ROBOT')) {
       // a metal figure: one material, no life in it
       const metal = name === 'WRECK'
@@ -146,17 +146,37 @@ export class Avatar implements Actor {
       if (name === 'WRECK') { scene.rotation.x = -Math.PI / 2 + 0.25; scene.rotation.z = 0.3; scene.position.y = 0.25; }
     }
     // Pose in the character's own space: X right, Y up, Z forward. Then store it as the new rest pose.
-    this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), -0.95);
-    this.rotateInRootSpace('RightArm', new THREE.Vector3(0, 0, 1), 0.95);
-    this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(0, 0, 1), -0.15);
-    this.rotateInRootSpace('RightForeArm', new THREE.Vector3(0, 0, 1), 0.15);
+    // standing arms hang a little out from the body so the hands do not meet in front
+    const armDrop = seated ? 0.95 : 0.8;
+    this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), -armDrop);
+    this.rotateInRootSpace('RightArm', new THREE.Vector3(0, 0, 1), armDrop);
+    // forearms turn in a little when seated (hands to the lap) and out when standing (hands by the thighs)
+    this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(0, 0, 1), seated ? -0.15 : 0.45);
+    this.rotateInRootSpace('RightForeArm', new THREE.Vector3(0, 0, 1), seated ? 0.15 : -0.45);
+    if (!seated) {
+      // palms turn to face the thighs
+      this.rotateInRootSpace('LeftHand', new THREE.Vector3(0, 1, 0), -1.0);
+      this.rotateInRootSpace('RightHand', new THREE.Vector3(0, 1, 0), 1.0);
+      // a relaxed stance: elbows a little bent, the right arm a touch back, a slight lean
+      this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(1, 0, 0), -0.1);
+      this.rotateInRootSpace('RightArm', new THREE.Vector3(1, 0, 0), 0.12);
+      this.rotateInRootSpace('LeftArm', new THREE.Vector3(1, 0, 0), -0.05);
+      this.rotateInRootSpace('Spine', new THREE.Vector3(0, 0, 1), 0.04);
+      this.rotateInRootSpace('Spine1', new THREE.Vector3(0, 0, 1), -0.02);
+      this.rotateInRootSpace('Head', new THREE.Vector3(0, 0, 1), 0.03);
+    }
     if (seated) {
       this.rotateInRootSpace('LeftUpLeg', new THREE.Vector3(1, 0, 0), -1.5);
       this.rotateInRootSpace('RightUpLeg', new THREE.Vector3(1, 0, 0), -1.5);
       this.rotateInRootSpace('LeftLeg', new THREE.Vector3(1, 0, 0), 1.45);
       this.rotateInRootSpace('RightLeg', new THREE.Vector3(1, 0, 0), 1.45);
-      this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(1, 0, 0), -1.0);
-      this.rotateInRootSpace('RightForeArm', new THREE.Vector3(1, 0, 0), -1.0);
+      // hands rest on the thighs, apart, instead of clasped
+      this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), -0.12);
+      this.rotateInRootSpace('RightArm', new THREE.Vector3(0, 0, 1), 0.12);
+      this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(1, 0, 0), -0.85);
+      this.rotateInRootSpace('RightForeArm', new THREE.Vector3(1, 0, 0), -0.85);
+      this.rotateInRootSpace('LeftForeArm', new THREE.Vector3(0, 0, 1), -0.2);
+      this.rotateInRootSpace('RightForeArm', new THREE.Vector3(0, 0, 1), 0.2);
       this.rotateInRootSpace('Spine', new THREE.Vector3(1, 0, 0), 0.1);
       const hips = this.bones.get(B('Hips'));
       if (hips) {
@@ -169,6 +189,34 @@ export class Avatar implements Actor {
     this.root.updateMatrixWorld(true);
     const hipsBone = this.bones.get(B('Hips'));
     this.hipY = hipsBone ? hipsBone.getWorldPosition(new THREE.Vector3()).y - this.root.getWorldPosition(new THREE.Vector3()).y : 0.6;
+  }
+
+  /** Repairs the exported materials: hair without its broken normal map, wet eyes, soft brows, and skin with sheen. */
+  private upgradeMaterials(): void {
+    this.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      const std = m.material as THREE.MeshStandardMaterial;
+      if (!std || !std.isMeshStandardMaterial) return;
+      const n = m.name;
+      if (/hair/i.test(n)) {
+        // the exported tangent-space normal map turns half the hair cards black
+        std.normalMap = null; std.roughness = 0.6; std.needsUpdate = true;
+      } else if (/eyebrow|eyelash/i.test(n)) {
+        // these come without their alpha texture: a dark tint and some transparency soften the solid strips
+        std.color.set(0x2a1a12); std.transparent = true; std.opacity = /lash/i.test(n) ? 0.35 : 0.85; std.depthWrite = false;
+      } else if (/low-poly|eye/i.test(n)) {
+        // the eyeballs: glossy, opaque
+        std.roughness = 0.12; std.metalness = 0; std.transparent = false; std.alphaTest = 0; std.needsUpdate = true;
+      } else if (/^base/i.test(n)) {
+        // skin: opaque, with a soft sheen in place of subsurface scattering
+        m.material = new THREE.MeshPhysicalMaterial({
+          map: std.map, color: std.color, roughness: 0.55, metalness: 0, side: std.side, depthWrite: true,
+          sheen: 0.45, sheenColor: new THREE.Color(0xffd2b8), sheenRoughness: 0.85, specularIntensity: 0.5,
+        });
+        std.dispose();
+      }
+    });
   }
 
   /** Prepares a toon material and an outline hull for every mesh, so the look can switch at any time. */
@@ -238,9 +286,12 @@ export class Avatar implements Actor {
     const wantYaw = this.faceTarget ? Math.atan2(this.faceTarget.x - this.root.position.x, this.faceTarget.z - this.root.position.z) : this.baseYaw;
     let dy = wantYaw - this.root.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
     this.root.rotation.y += dy * Math.min(1, dt * 2.5);
-    // breathing and sway
+    // breathing, sway, a slow weight shift, and the free arm drifting
     this.rotateInRootSpace('Spine1', new THREE.Vector3(1, 0, 0), Math.sin(t * 1.3) * 0.015, this.baseQ.get(B('Spine1')));
     this.rotateInRootSpace('Spine1', new THREE.Vector3(0, 1, 0), Math.sin(t * 0.37) * 0.03);
+    this.rotateInRootSpace('Spine', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.23) * 0.02, this.baseQ.get(B('Spine')));
+    this.rotateInRootSpace('LeftArm', new THREE.Vector3(1, 0, 0), Math.sin(t * 0.5) * 0.03, this.baseQ.get(B('LeftArm')));
+    this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.41) * 0.02);
     // head look-at in the character's own frame
     let yaw = Math.sin(t * 0.3) * 0.2, pitch = 0;
     if (this.lookTarget) {
