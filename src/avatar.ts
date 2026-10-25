@@ -82,6 +82,18 @@ function outlineMaterial(width: number): THREE.MeshBasicMaterial {
   return m;
 }
 
+/** The retargeted Mixamo clips (blender/anim.py), loaded once and shared by every avatar. */
+let clipLibrary: Promise<THREE.AnimationClip[] | null> | null = null;
+function loadClips(base: string): Promise<THREE.AnimationClip[] | null> {
+  if (!clipLibrary) {
+    clipLibrary = new GLTFLoader().loadAsync(`${base}characters/anim.glb`).then((g) => g.animations).catch(() => null);
+  }
+  return clipLibrary;
+}
+/** Characters who talk with their whole body; everyone else gets the calm talking clip. */
+const EMPHATIC = new Set(['GREY COAT', 'PATRON_D', 'DOM VELLORY', 'RYDEL BANDER', 'CHAIR AMMEL']);
+const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+
 // GLTFLoader strips ':' from node names, so 'mixamorig:Hips' arrives as 'mixamorigHips'.
 const B = (n: string) => `mixamorig${n}`;
 const clean = (n: string) => n.replace(/[^\w-]/g, '');
@@ -110,14 +122,26 @@ export class Avatar implements Actor {
   static defaultLook: Look = 'real';
 
   static async load(name: string, url: string, seated: boolean): Promise<Avatar> {
-    const gltf = await new GLTFLoader().loadAsync(url);
-    return new Avatar(name, gltf.scene, seated);
+    const base = url.slice(0, url.indexOf('characters/'));
+    const [gltf, clips] = await Promise.all([new GLTFLoader().loadAsync(url), loadClips(base)]);
+    return new Avatar(name, gltf.scene, seated, clips);
   }
 
-  private constructor(name: string, scene: THREE.Group, seated: boolean) {
+  // motion clips: a mixer drives the whole skeleton; the look-at and mouth sit on top
+  private mixer: THREE.AnimationMixer | null = null;
+  private clips = new Map<string, THREE.AnimationClip>();
+  private current: THREE.AnimationAction | null = null;
+  private state = '';
+  private gestureTimer = 4 + Math.random() * 6;
+  private oneShot: THREE.AnimationAction | null = null;
+  private seated: boolean;
+
+  private constructor(name: string, scene: THREE.Group, seated: boolean, clips: THREE.AnimationClip[] | null) {
     this.name = name;
     this.scene = scene;
+    this.seated = seated;
     this.root.add(scene);
+    if (clips) for (const c of clips) this.clips.set(c.name, c);
     scene.traverse((o) => {
       if ((o as THREE.Bone).isBone) { this.bones.set(clean(o.name), o); this.base.set(clean(o.name), o.rotation.clone()); }
       const m = o as THREE.Mesh;
@@ -186,6 +210,12 @@ export class Avatar implements Actor {
     }
     for (const [k, b] of this.bones) this.base.set(k, b.rotation.clone());
     this.baseQ = new Map([...this.bones].map(([k, b]) => [k, b.quaternion.clone()]));
+    if (this.clips.size && !this.statue) {
+      // the clip replaces the hand-made pose; apply its first frame now so the seat height is measured from it
+      this.mixer = new THREE.AnimationMixer(scene);
+      this.play(this.clipFor('idle'), 0);
+      this.mixer.update(0);
+    }
     this.root.updateMatrixWorld(true);
     const hipsBone = this.bones.get(B('Hips'));
     this.hipY = hipsBone ? hipsBone.getWorldPosition(new THREE.Vector3()).y - this.root.getWorldPosition(new THREE.Vector3()).y : 0.6;
@@ -256,6 +286,56 @@ export class Avatar implements Actor {
     }
   }
 
+  /** Which clip plays for a state, varied by character so a room full of people does not move in step. */
+  private clipFor(state: 'idle' | 'listen' | 'talk' | 'nod' | 'shrug'): string {
+    const h = hash(this.name);
+    if (this.seated) return state === 'talk' ? 'sitting_talking' : 'sitting_idle';
+    switch (state) {
+      case 'idle': return h % 2 ? 'breathing_idle' : 'idle';
+      case 'listen': return h % 3 === 0 ? 'looking_around' : 'thinking';
+      case 'talk': return EMPHATIC.has(this.name) ? 'standing_arguing' : 'talking';
+      case 'nod': return 'head_nod_yes';
+      case 'shrug': return 'shrugging';
+    }
+  }
+
+  /** Crossfades to a looping clip. */
+  private play(name: string, fade: number): void {
+    const clip = this.clips.get(name);
+    if (!this.mixer || !clip) return;
+    const next = this.mixer.clipAction(clip);
+    next.setLoop(THREE.LoopRepeat, Infinity);
+    next.timeScale = 0.9 + (hash(this.name + name) % 100) / 500;
+    next.enabled = true; next.setEffectiveWeight(1);
+    if (this.current && this.current !== next) {
+      next.reset().play();
+      if (fade > 0) this.current.crossFadeTo(next, fade, true); else this.current.stop();
+    } else if (!this.current) {
+      next.play();
+      next.time = (hash(this.name + name) % 1000) / 1000 * clip.duration;
+    }
+    this.current = next;
+  }
+
+  /** Plays a clip once over the current loop, then returns to it. */
+  private playOnce(name: string): void {
+    const clip = this.clips.get(name);
+    if (!this.mixer || !clip || this.oneShot) return;
+    const a = this.mixer.clipAction(clip);
+    a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = false;
+    a.reset().setEffectiveWeight(1).play();
+    if (this.current) { this.current.crossFadeTo(a, 0.35, false); }
+    this.oneShot = a;
+    const onDone = (e: { action: THREE.AnimationAction }) => {
+      if (e.action !== a) return;
+      this.mixer!.removeEventListener('finished', onDone);
+      this.oneShot = null;
+      const back = this.current; this.current = null;
+      if (back) { back.reset().play(); a.crossFadeTo(back, 0.35, false); this.current = back; }
+    };
+    this.mixer.addEventListener('finished', onDone);
+  }
+
   private hipY = 0.6;
   /** Root height that puts the underside of the seated thighs on a seat of the given top height. */
   seatOffset(seatTop: number): number { return seatTop - (this.hipY - 0.1); }
@@ -286,12 +366,24 @@ export class Avatar implements Actor {
     const wantYaw = this.faceTarget ? Math.atan2(this.faceTarget.x - this.root.position.x, this.faceTarget.z - this.root.position.z) : this.baseYaw;
     let dy = wantYaw - this.root.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
     this.root.rotation.y += dy * Math.min(1, dt * 2.5);
-    // breathing, sway, a slow weight shift, and the free arm drifting
-    this.rotateInRootSpace('Spine1', new THREE.Vector3(1, 0, 0), Math.sin(t * 1.3) * 0.015, this.baseQ.get(B('Spine1')));
-    this.rotateInRootSpace('Spine1', new THREE.Vector3(0, 1, 0), Math.sin(t * 0.37) * 0.03);
-    this.rotateInRootSpace('Spine', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.23) * 0.02, this.baseQ.get(B('Spine')));
-    this.rotateInRootSpace('LeftArm', new THREE.Vector3(1, 0, 0), Math.sin(t * 0.5) * 0.03, this.baseQ.get(B('LeftArm')));
-    this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.41) * 0.02);
+    if (this.mixer) {
+      // clip state: talk, listen (someone is looking at us), or idle, with the odd nod while listening
+      const want = this.talking ? 'talk' : this.lookTarget ? 'listen' : 'idle';
+      if (want !== this.state) { this.state = want; if (!this.oneShot) this.play(this.clipFor(want), 0.5); }
+      this.gestureTimer -= dt;
+      if (this.gestureTimer <= 0) {
+        this.gestureTimer = 6 + Math.random() * 8;
+        if (!this.seated && !this.talking && this.lookTarget) this.playOnce(this.clipFor(Math.random() < 0.7 ? 'nod' : 'shrug'));
+      }
+      this.mixer.update(dt);
+    } else {
+      // no clips: breathing, sway, a slow weight shift, and the free arm drifting
+      this.rotateInRootSpace('Spine1', new THREE.Vector3(1, 0, 0), Math.sin(t * 1.3) * 0.015, this.baseQ.get(B('Spine1')));
+      this.rotateInRootSpace('Spine1', new THREE.Vector3(0, 1, 0), Math.sin(t * 0.37) * 0.03);
+      this.rotateInRootSpace('Spine', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.23) * 0.02, this.baseQ.get(B('Spine')));
+      this.rotateInRootSpace('LeftArm', new THREE.Vector3(1, 0, 0), Math.sin(t * 0.5) * 0.03, this.baseQ.get(B('LeftArm')));
+      this.rotateInRootSpace('LeftArm', new THREE.Vector3(0, 0, 1), Math.sin(t * 0.41) * 0.02);
+    }
     // head look-at in the character's own frame
     let yaw = Math.sin(t * 0.3) * 0.2, pitch = 0;
     if (this.lookTarget) {
@@ -303,16 +395,19 @@ export class Avatar implements Actor {
     }
     this.headYaw += (yaw - this.headYaw) * k;
     this.headPitch += (pitch - this.headPitch) * k;
-    this.rotateInRootSpace('Neck', new THREE.Vector3(0, 1, 0), this.headYaw * 0.35, this.baseQ.get(B('Neck')));
+    const neckBase = this.mixer ? undefined : this.baseQ.get(B('Neck')), headBase = this.mixer ? undefined : this.baseQ.get(B('Head'));
+    this.rotateInRootSpace('Neck', new THREE.Vector3(0, 1, 0), this.headYaw * 0.35, neckBase);
     this.rotateInRootSpace('Neck', new THREE.Vector3(1, 0, 0), -this.headPitch * 0.35);
-    this.rotateInRootSpace('Head', new THREE.Vector3(0, 1, 0), this.headYaw * 0.65, this.baseQ.get(B('Head')));
+    this.rotateInRootSpace('Head', new THREE.Vector3(0, 1, 0), this.headYaw * 0.65, headBase);
     this.rotateInRootSpace('Head', new THREE.Vector3(1, 0, 0), -this.headPitch * 0.65);
-    // talking gestures: the right forearm lifts and turns
-    const g = this.talking ? 0.5 + Math.sin(t * 2.1) * 0.3 : 0;
-    this.gesture += (g - this.gesture) * Math.min(1, dt * 5);
-    this.rotateInRootSpace('RightArm', new THREE.Vector3(1, 0, 0), -this.gesture * 0.35, this.baseQ.get(B('RightArm')));
-    this.rotateInRootSpace('RightForeArm', new THREE.Vector3(1, 0, 0), -this.gesture * 1.1, this.baseQ.get(B('RightForeArm')));
-    this.rotateInRootSpace('RightForeArm', new THREE.Vector3(0, 1, 0), this.gesture * 0.4);
+    if (!this.mixer) {
+      // talking gestures: the right forearm lifts and turns
+      const g = this.talking ? 0.5 + Math.sin(t * 2.1) * 0.3 : 0;
+      this.gesture += (g - this.gesture) * Math.min(1, dt * 5);
+      this.rotateInRootSpace('RightArm', new THREE.Vector3(1, 0, 0), -this.gesture * 0.35, this.baseQ.get(B('RightArm')));
+      this.rotateInRootSpace('RightForeArm', new THREE.Vector3(1, 0, 0), -this.gesture * 1.1, this.baseQ.get(B('RightForeArm')));
+      this.rotateInRootSpace('RightForeArm', new THREE.Vector3(0, 1, 0), this.gesture * 0.4);
+    }
     // mouth
     const target = this.talking ? Math.min(1, this.mouthOpen * 1.6) : 0;
     for (const m of this.morphMeshes) {
