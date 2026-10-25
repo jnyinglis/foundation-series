@@ -148,6 +148,27 @@ const WINDOW_FRAG = /* glsl */ `
     float stars = step(0.997, h(floor(vUv*vec2(480.0,160.0)))) * (1.0-cliff) * smoothstep(0.4,0.9,vUv.y);
     col += stars * 1.2;
     gl_FragColor = vec4(col * 1.3, 1.0); }`;
+const CITY_FRAG = /* glsl */ `
+  precision highp float; varying vec3 vWorld;
+  float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+  void main(){
+    // the Kalgan night: windows span x in [-8, 8] and y in [0.9, 5.9] in room space
+    vec2 uv = vec2((vWorld.x + 8.0) / 16.0, clamp((vWorld.y - 0.9) / 5.0, 0.0, 1.0));
+    vec3 glow = vec3(0.95,0.42,0.32); vec3 rose = vec3(0.55,0.18,0.38); vec3 violet = vec3(0.06,0.03,0.14);
+    vec3 sky = mix(glow, rose, smoothstep(0.0,0.3,uv.y)); sky = mix(sky, violet, smoothstep(0.2,0.8,uv.y));
+    // towers: two layers of silhouettes with lit windows
+    float col1 = floor(uv.x * 26.0); float ht1 = 0.18 + 0.42 * h(vec2(col1, 7.0));
+    float t1 = step(uv.y, ht1);
+    float col2 = floor(uv.x * 11.0 + 0.5); float ht2 = 0.3 + 0.5 * h(vec2(col2, 3.0));
+    float t2 = step(uv.y, ht2);
+    vec3 far = mix(sky, vec3(0.16,0.07,0.12), t2 * 0.8);
+    vec3 col = mix(far, vec3(0.03,0.02,0.04), t1);
+    float w1 = step(0.55, h(floor(uv * vec2(260.0, 90.0)))) * t1;
+    float w2 = step(0.8, h(floor(uv * vec2(140.0, 50.0) + 3.0))) * t2 * (1.0 - t1);
+    col += vec3(1.0,0.78,0.45) * w1 * 0.9 + vec3(0.9,0.5,0.6) * w2 * 0.5;
+    float stars = step(0.996, h(floor(uv*vec2(400.0,140.0)))) * (1.0 - t1) * (1.0 - t2) * smoothstep(0.5,0.95,uv.y);
+    col += stars * 0.8;
+    gl_FragColor = vec4(col, 1.0); }`;
 const WINDOW_VERT = /* glsl */ `varying vec3 vWorld; void main(){ vWorld = (modelMatrix * vec4(position,1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
 
 export class Interior {
@@ -208,6 +229,10 @@ export class Interior {
         const basic = new THREE.MeshBasicMaterial({ map: mat.map });
         mesh.material = basic;
         this.disposables.push(basic);
+      } else if (mat.name === 'CityWindow') {
+        const win = new THREE.ShaderMaterial({ vertexShader: WINDOW_VERT, fragmentShader: CITY_FRAG, side: THREE.DoubleSide });
+        mesh.material = win;
+        this.disposables.push(win);
       } else if (mat.name === 'Window') {
         const win = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, vertexShader: WINDOW_VERT, fragmentShader: WINDOW_FRAG, side: THREE.DoubleSide });
         mesh.material = win;
@@ -258,6 +283,10 @@ export class Interior {
       const sky = new THREE.Mesh(skyGeo, skyMat); this.scene.add(sky); this.disposables.push(skyGeo, skyMat);
       this.scene.add(new THREE.HemisphereLight(0x8aa0d0, 0x4a4a28, 1.2));
       const sun = new THREE.DirectionalLight(0xfff0d0, 2.0); sun.position.set(8, 14, -6); this.scene.add(sun);
+    } else if (this.sceneName === 'salon') {
+      this.scene.add(new THREE.HemisphereLight(0x8a4a48, 0x140808, 0.7));
+      for (const [x, z] of [[-5, -2], [5, -2], [0, 4]]) { const l = new THREE.PointLight(0xffc080, 7, 14, 1.5); l.position.set(x, 5.6, z); this.scene.add(l); }
+      const win = new THREE.PointLight(0xff7090, 5, 16, 1.4); win.position.set(0, 3.5, -8); this.scene.add(win);
     } else if (this.sceneName === 'estate') {
       this.scene.add(new THREE.HemisphereLight(0xf0f4ff, 0xa0a098, 1.6));
       for (const z of [10, 2, -6]) { const l = new THREE.PointLight(0xffffff, 12, 14, 1.4); l.position.set(0, 5.5, -z); this.scene.add(l); }

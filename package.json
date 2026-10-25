@@ -20,6 +20,7 @@
     "scene:village": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/village.py -- public/scenes",
     "scene:moon": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/moon.py -- public/scenes",
     "scene:archive": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/archive.py -- public/scenes",
+    "scene:salon": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/salon.py -- public/scenes",
     "scene:cantina": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/cantina.py -- public/scenes",
     "connectivity": "tsx scripts/connectivity.ts"
   },

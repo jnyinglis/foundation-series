@@ -164,7 +164,7 @@ function leaveCity(): void {
   view = 'space';
 }
 let interiorLoading = false;
-const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault', ruins: 'the Fastolfe estate on Aurora', estate: 'the Bander estate on Solaria', village: 'New Earth, on Alpha', moon: 'the chamber under the Moon' };
+const PLACE_NAMES: Record<string, string> = { cantina: 'Twilight City cantina', archive: 'the Siwenna archive', library: 'the Galactic Library', sacratorium: 'the Sacratorium of Mycogen', terrace: 'the Sayshell terrace', vault: 'the Comporellon archive vault', ruins: 'the Fastolfe estate on Aurora', estate: 'the Bander estate on Solaria', village: 'New Earth, on Alpha', moon: 'the chamber under the Moon', salon: 'the Salon of Fortunes in the Warlord\'s Palace' };
 let lastLandmark: string | null = null;
 let interiorLabel = '';
 async function enterInterior(name = 'cantina', opts: EnterOptions = {}): Promise<void> {
@@ -214,6 +214,7 @@ function toggleLanding(): void {
   else if (world.id === 'solaria') void enterInterior('estate');
   else if (world.id === 'alpha') void enterInterior('village');
   else if (world.id === 'earth') void enterInterior('moon');
+  else if (world.id === 'kalgan') void enterInterior('salon');
   else hud.showMessage('No landing site is charted here yet.', 3000);
 }
 dialogue.onSpeaker = (who) => { interior?.focus(who === 'TAREN' ? null : who); };
@@ -578,12 +579,12 @@ function frame(): void {
       hud.showMessage(refuel > 0.5 ? `Orbit established. Refuelled at ${world.name}.` : `Orbit established over ${world.name}.`, 3500);
       audio.blip(1200);
       if (!hud.infoOpen && !story) hud.showInfo(world);
-      saveState(state);
+      if (started) saveState(state);
       story?.fire({ type: 'orbit', world: world.id });
     } else if (!nowOrbiting && orbiting) {
       orbiting = false;
     }
-    const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon', 'aurora', 'solaria', 'alpha', 'earth'].includes(world.id);
+    const landing = ['trantor', 'radole', 'siwenna', 'sayshell', 'comporellon', 'aurora', 'solaria', 'alpha', 'earth', 'kalgan'].includes(world.id);
     if (!jumping) hud.setStatus(storyLock ? 'STORY' : orbiting ? `IN ORBIT · ${world.name.toUpperCase()}${landing ? ' · L TO LAND' : ''}` : ship.isLocked ? 'FLIGHT' : 'CLICK TO FLY · M MAP · H HELP', orbiting ? 'ok' : '');
   }
 

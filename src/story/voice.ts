@@ -139,6 +139,20 @@ export const CAST: Record<string, CastEntry> = {
     fallback: { names: ['Daniel', 'Fred'], pitch: 0.8, rate: 0.88 },
     portrait: { key: 'pherl', prompt: 'An old Askonian Elder in a grey ceremonial robe with ancestral tokens on a chain, heavy-lidded eyes, a thin smile, in a hall of dark wood and lamps. Oily, pious, greedy.' },
   },
+  'NESSA TARRANT': {
+    voice: 'nova',
+    instructions: 'A Trader house factor in her forties who has lost a ship and her post and is holding herself together with precision. Clipped, formal, angry underneath, never pleading.',
+    fx: 'plain',
+    fallback: { names: ['Samantha', 'Karen', 'Google UK English Female'], pitch: 0.95, rate: 1.0 },
+    portrait: { key: 'nessa', prompt: 'A Foundation Trader house factor in her forties, dark skin, hair braided back, in a tailored dark suit with Ponyets House colours at the collar, standing very straight beside a green gaming table in a red and gold salon. Composed, angry, ashamed.' },
+  },
+  'DOM VELLORY': {
+    voice: 'ballad',
+    instructions: 'The master of tables in a Warlord\'s palace: smooth, amused, unhurried, every word a courtesy with a blade in it. Low, warm, never raised.',
+    fx: 'plain',
+    fallback: { names: ['Daniel', 'Oliver'], pitch: 0.85, rate: 0.9 },
+    portrait: { key: 'vellory', prompt: 'A master of gaming tables in a Warlord\'s palace, fifties, Eurasian features, black coat with a gold collar, hands folded, a thin pleasant smile, seated under a gold grille in a red velvet salon lit by chandeliers. Smooth, watchful, dangerous.' },
+  },
   MEMORY: {
     voice: 'fable',
     instructions: 'A faint recorded voice from very long ago. Old, kind, patient, slightly worn, as if played from a damaged medium. Speaks as a teacher to a child it will never meet.',

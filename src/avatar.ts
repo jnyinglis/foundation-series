@@ -38,6 +38,10 @@ export const AVATAR_FILES: Record<string, string> = {
   DANEEL: 'daneel',
   'RAL GOROV': 'gorov',
   'ELDER PHERL': 'pherl',
+  'NESSA TARRANT': 'nessa',
+  'DOM VELLORY': 'vellory',
+  CROUPIER: 'bartender',
+  LISTENER: 'patron_b',
 };
 
 /** Robots and wrecks reuse the statue file with a material override. */

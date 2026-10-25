@@ -114,6 +114,16 @@ CHARACTERS = {
         skin='old_asian_male.mhmat', hair=None, eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
         clothes=['donitz_monk_robe.mhclo', 'culturalibre_male_boots.mhclo'],
     ),
+    'nessa': dict(
+        macro=dict(gender=0.08, age=0.5, muscle=0.5, weight=0.44, proportions=0.6, height=0.6, cupsize=0.5, firmness=0.6, race=race(0.2, 0.1, 0.7)),
+        skin='middleage_african_female.mhmat', hair='ponytail01.mhclo', eyebrows='mindfront_eyebrows_10.mhclo', eyelashes='mindfront_eyelashes_01.mhclo',
+        clothes=['female_casualsuit01.mhclo', 'toigo_ankle_boots_female.mhclo'],
+    ),
+    'vellory': dict(
+        macro=dict(gender=0.95, age=0.62, muscle=0.45, weight=0.55, proportions=0.6, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.5, 0.45, 0.05)),
+        skin='middleage_asian_male.mhmat', hair='short02.mhclo', eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_elegantsuit01.mhclo', 'shoes02.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',
