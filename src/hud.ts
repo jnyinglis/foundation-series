@@ -62,6 +62,9 @@ export class Hud {
     this.markerLabel.textContent = label;
   }
 
+  private promptEl = document.getElementById('prompt')!;
+  setPrompt(text: string): void { if (this.promptEl.textContent !== text) this.promptEl.textContent = text; this.promptEl.classList.toggle('show', !!text); }
+
   setStatus(text: string, cls = ''): void {
     this.status.textContent = text;
     this.status.className = `status ${cls}`;

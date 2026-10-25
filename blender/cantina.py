@@ -96,7 +96,14 @@ M_LEATHER = material('Leather', (0.3, 0.14, 0.09), rough=0.8, grime=0.3, scale=1
 M_PIPE = material('Pipe', (0.2, 0.17, 0.14), rough=0.5, metal=0.8, grime=0.5, scale=14.0)
 M_LAMP = material('Lamp', (1.0, 0.72, 0.4), emit=(1.0, 0.68, 0.38), emit_strength=8.0)
 M_CYAN = material('CyanStrip', (0.3, 0.8, 1.0), emit=(0.25, 0.8, 1.0), emit_strength=6.0)
-M_BOTTLES = [material(f'Bottle{i}', c, emit=c, emit_strength=2.5) for i, c in enumerate([(0.25, 0.8, 1.0), (1.0, 0.75, 0.3), (0.5, 1.0, 0.7), (1.0, 0.4, 0.4)])]
+M_BOTTLES = [material(f'Bottle{i}', c, emit=c, emit_strength=1.2) for i, c in enumerate([(0.25, 0.8, 1.0), (1.0, 0.75, 0.3), (0.5, 1.0, 0.7), (1.0, 0.4, 0.4)])]
+M_GLASS = [material(f'Glass{i}', c, rough=0.1, metal=0.1, grime=0.05, scale=20.0) for i, c in enumerate([(0.12, 0.3, 0.14), (0.55, 0.35, 0.12), (0.7, 0.72, 0.75), (0.35, 0.12, 0.1), (0.2, 0.22, 0.4)])]
+M_PLATE = material('Plate', (0.8, 0.78, 0.72), rough=0.3, grime=0.1, scale=10.0)
+M_FOOD = material('Food', (0.55, 0.32, 0.14), rough=0.9, grime=0.3, scale=20.0)
+M_DRINK = material('Drink', (0.75, 0.5, 0.15), rough=0.2, grime=0.05, scale=20.0)
+M_POSTER = [material(f'Poster{i}', c, rough=0.9, grime=0.2, scale=3.0) for i, c in enumerate([(0.65, 0.25, 0.15), (0.2, 0.4, 0.6), (0.7, 0.6, 0.3)])]
+M_SCREEN = material('Screen', (0.3, 0.8, 1.0), emit=(0.25, 0.7, 1.0), emit_strength=1.4)
+M_CRATE = material('Crate', (0.35, 0.33, 0.28), rough=0.9, grime=0.4, scale=4.0, brick=(0.6, 0.02))
 
 # window: twilight gradient, emits light into the room
 M_WINDOW = bpy.data.materials.new('Window')
@@ -207,14 +214,30 @@ bx = W / 2 - 2.4
 box('BarBody', (0.9, 10.0, 1.05), (bx, 1.0, 0.525), M_WOOD, bevel=0.03, collide=True)
 box('BarTop', (1.15, 10.3, 0.07), (bx, 1.0, 1.085), M_STEEL, bevel=0.02)
 box('BarKick', (0.06, 10.0, 0.08), (bx - 0.5, 1.0, 0.25), M_STEEL)
-box('BarStrip', (0.03, 10.0, 0.03), (bx - 0.47, 1.0, 1.0), M_CYAN, bevel=0, static=False)
-box('BackBar', (0.5, 10.2, 3.4), (W / 2 - 0.5, 1.0, 1.7), M_DARK, bevel=0.03, collide=True)
+box('BarStrip', (0.03, 10.0, 0.03), (bx - 0.47, 1.0, 1.0), M_STEEL, bevel=0)
+area_light((bx - 0.6, 1.0, 0.95), 10, color=(0.5, 0.85, 1.0), size=0.3)
+box('BackBar', (0.4, 10.2, 3.4), (W / 2 - 0.2, 1.0, 1.7), M_DARK, bevel=0.03, collide=True)
+for g in range(9):
+    cyl(f'BarGlass{g}', 0.035, 0.11, (bx - 0.25 + random.random() * 0.3, -3.6 + g * 1.15 + random.random() * 0.4, 1.12 + 0.055), M_GLASS[2 if g % 3 else 4], verts=10)
+    if g % 2 == 0:
+        cyl(f'BarDrink{g}', 0.03, 0.06, (bx - 0.25 + random.random() * 0.3, -3.6 + g * 1.15 + random.random() * 0.4, 1.12 + 0.03), M_DRINK, verts=10)
+box('BarTap', (0.12, 0.5, 0.45), (bx + 0.25, 3.5, 1.12 + 0.22), M_STEEL, bevel=0.02)
+for k in range(3):
+    cyl(f'TapHandle{k}', 0.025, 0.2, (bx + 0.2, 3.35 + k * 0.15, 1.12 + 0.5), M_LAMP if k == 1 else M_STEEL, static=k != 1, verts=8)
+box('Till', (0.4, 0.5, 0.3), (bx + 0.1, -4.5, 1.12 + 0.15), M_DARK, bevel=0.02)
+box('TillScreen', (0.3, 0.04, 0.18), (bx - 0.1, -4.5, 1.12 + 0.4), M_SCREEN, bevel=0, static=False, rot=(0.4, 0, 0))
+for k in range(4):
+    box(f'BarPlate{k}', (0.26, 0.26, 0.02), (W / 2 - 0.55, 2.8 + k * 0.4, 1.36), M_PLATE, bevel=0.01)
 for s in range(3):
-    box(f'Shelf{s}', (0.45, 9.8, 0.05), (W / 2 - 0.55, 1.0, 1.35 + s * 0.75), M_STEEL)
-    box(f'ShelfLight{s}', (0.03, 9.6, 0.03), (W / 2 - 0.75, 1.0, 1.33 + s * 0.75), M_CYAN, bevel=0, static=False)
-    for b in range(11):
-        r = 0.045 + random.random() * 0.03
-        cyl(f'Bottle{s}{b}', r, 0.28 + random.random() * 0.22, (W / 2 - 0.56, -3.6 + b * 0.9 + random.random() * 0.3, 1.38 + s * 0.75 + 0.2), M_BOTTLES[(s + b) % 4], static=False, verts=12)
+    box(f'Shelf{s}', (0.5, 9.8, 0.05), (W / 2 - 0.62, 1.0, 1.35 + s * 0.75), M_STEEL)
+    box(f'ShelfLight{s}', (0.03, 9.6, 0.03), (W / 2 - 0.75, 1.0, 1.33 + s * 0.75), M_STEEL, bevel=0)
+    area_light((W / 2 - 0.7, 1.0, 1.36 + s * 0.75), 6, color=(0.5, 0.85, 1.0), size=0.2)
+    for b in range(22):
+        r = 0.055 + random.random() * 0.035
+        h = 0.34 + random.random() * 0.24
+        lit = (s + b) % 6 == 0
+        cyl(f'Bottle{s}{b}', r, h, (W / 2 - 0.56, -3.8 + b * 0.44 + random.random() * 0.1, 1.38 + s * 0.75 + h / 2), M_BOTTLES[(s + b) % 4] if lit else M_GLASS[(s * 3 + b) % 5], static=not lit, verts=12)
+        cyl(f'BottleNeck{s}{b}', r * 0.45, 0.1, (W / 2 - 0.56, -3.8 + b * 0.44, 1.38 + s * 0.75 + h + 0.05), M_GLASS[(s * 3 + b) % 5], verts=10)
 for s in range(6):
     y = -3.5 + s * 1.8
     cyl(f'BarStoolSeat{s}', 0.26, 0.09, (bx - 1.2, y, 0.72), M_LEATHER)
@@ -227,6 +250,20 @@ for t, (x, y) in enumerate(TABLES):
     cyl(f'TableRim{t}', 0.82, 0.03, (x, y, 0.95), M_DARK, verts=32)
     cyl(f'TableLeg{t}', 0.09, 0.9, (x, y, 0.47), M_DARK, verts=12, r2=0.32)
     box(f'TableLamp{t}', (0.26, 0.26, 0.06), (x, y, 1.03), M_LAMP, bevel=0, static=False)
+    for g, a in enumerate((0.3, 2.4, 4.6)):
+        gx, gy = x + math.cos(a) * 0.45, y + math.sin(a) * 0.45
+        cyl(f'Glass{t}{g}', 0.035, 0.12, (gx, gy, 0.995 + 0.06), M_GLASS[2 if g else 4], verts=10)
+        cyl(f'GlassDrink{t}{g}', 0.03, 0.05, (gx, gy, 0.995 + 0.025), M_DRINK, verts=10)
+    bx_, by_ = x + math.cos(1.3) * 0.5, y + math.sin(1.3) * 0.5
+    cyl(f'TableBottle{t}', 0.045, 0.28, (bx_, by_, 0.995 + 0.14), M_GLASS[t % 5], verts=12)
+    cyl(f'TableBottleNeck{t}', 0.02, 0.1, (bx_, by_, 0.995 + 0.33), M_GLASS[t % 5], verts=8)
+    if t % 2 == 0:
+        px_, py_ = x + math.cos(3.6) * 0.48, y + math.sin(3.6) * 0.48
+        cyl(f'Plate{t}', 0.13, 0.015, (px_, py_, 1.0), M_PLATE, verts=20)
+        cyl(f'Food{t}', 0.08, 0.035, (px_, py_, 1.025), M_FOOD, verts=12)
+        box(f'Bread{t}', (0.1, 0.06, 0.04), (px_ + 0.08, py_ - 0.07, 1.03), M_FOOD, bevel=0.01, rot=(0, 0, 0.6))
+    else:
+        cyl(f'Bowl{t}', 0.1, 0.06, (x + math.cos(3.6) * 0.48, y + math.sin(3.6) * 0.48, 1.03), M_PLATE, verts=16, r2=0.07)
     area_light((x, y, 1.2), 9, size=0.3)
     COLLIDERS.append({'min': [x - 1.1, y - 1.1], 'max': [x + 1.1, y + 1.1]})
     for a in (0.0, 2.1, 4.2):
@@ -237,6 +274,23 @@ for t, (x, y) in enumerate(TABLES):
 box('Desk', (2.6, 0.9, 1.0), (-7.0, -6.2, 0.5), M_DARK, bevel=0.03, collide=True)
 box('DeskTop', (2.8, 1.0, 0.06), (-7.0, -6.2, 1.03), M_STEEL)
 box('DeskScreen', (0.6, 0.05, 0.4), (-7.0, -6.0, 1.35), M_CYAN, bevel=0, static=False, rot=(0.3, 0, 0))
+# posters and screens on the west wall, crates and a vending unit by the door
+for i, y in enumerate((-4.5, -1.5, 4.0)):
+    box(f'Poster{i}', (0.03, 0.9, 1.3), (-W / 2 + 0.3, y, 2.9), M_POSTER[i], bevel=0)
+    box(f'PosterFrame{i}', (0.02, 1.0, 1.4), (-W / 2 + 0.28, y, 2.9), M_DARK, bevel=0)
+box('WallScreen', (0.04, 1.8, 1.0), (-W / 2 + 0.3, 1.3, 3.0), M_SCREEN, bevel=0, static=False)
+box('WallScreenFrame', (0.06, 1.9, 1.1), (-W / 2 + 0.27, 1.3, 3.0), M_DARK, bevel=0)
+box('Notice', (0.03, 1.2, 0.8), (-W / 2 + 0.3, 6.5, 2.2), M_POSTER[2], bevel=0)
+for k, (cx_, cy_, cz_) in enumerate(((3.6, -6.9, 0.35), (4.4, -6.9, 0.35), (4.0, -6.9, 1.05), (3.0, -7.0, 0.35))):
+    box(f'Crate{k}', (0.7, 0.7, 0.7), (cx_, cy_, cz_), M_CRATE, bevel=0.02, rot=(0, 0, random.random() * 0.3))
+COLLIDERS.append({'min': [2.4, -7.6], 'max': [5.0, -6.3]})
+box('Vendor', (0.8, 0.6, 2.0), (6.5, -6.9, 1.0), M_DARK, bevel=0.03, collide=True)
+box('VendorScreen', (0.5, 0.04, 0.6), (6.5, -6.58, 1.4), M_SCREEN, bevel=0, static=False)
+box('VendorStrip', (0.6, 0.04, 0.04), (6.5, -6.58, 0.5), M_CYAN, bevel=0, static=False)
+cyl('HangLamp', 0.02, 1.6, (-6.5, 0.0, H - 0.9), M_DARK, verts=8)
+cyl('HangShade', 0.35, 0.25, (-6.5, 0.0, H - 1.8), M_DARK, verts=16, r2=0.12)
+cyl('HangBulb', 0.12, 0.05, (-6.5, 0.0, H - 1.95), M_LAMP, static=False, verts=12)
+area_light((-6.5, 0.0, H - 2.1), 18, size=0.3)
 # signage over the bar and the door
 box('SignBar', (0.04, 3.0, 0.3), (W / 2 - 0.72, -4.2, 3.9), M_LAMP, bevel=0, static=False)
 box('SignDoor', (2.0, 0.05, 0.25), (0, -D / 2 + 0.25, H - 1.5), M_CYAN, bevel=0, static=False)
@@ -322,14 +376,17 @@ bpy.ops.export_scene.gltf(filepath=os.path.join(os.path.abspath(OUT), 'cantina.g
 def three(x, y, z):  # Blender (x, y, z) -> Three (x, z, -y)
     return [round(x, 3), round(z, 3), round(-y, 3)]
 
-def fig(name, bx, by, yaw_deg, seated=False, face=None):
+def fig(name, bx, by, yaw_deg, seated=False, face=None, seat=None):
     # yaw is a Three rotation about Y. A seated figure faces its table.
     if face is not None:
         tx, ty = face
         yaw = math.atan2(tx - bx, -(ty - by))
     else:
         yaw = math.radians(yaw_deg)
-    return {'name': name, 'pos': three(bx, by, 0.12 if seated else 0.0), 'yaw': round(yaw, 4), 'seated': seated}
+    d = {'name': name, 'pos': three(bx, by, 0.12 if seated else 0.0), 'yaw': round(yaw, 4), 'seated': seated}
+    if seated:
+        d['seat'] = seat if seat is not None else 0.665
+    return d
 
 def stool_at(t, a):
     x, y = TABLES[t]
@@ -338,6 +395,7 @@ def stool_at(t, a):
 c0 = stool_at(3, 4.2)
 p0 = stool_at(0, 0.0)
 p1 = stool_at(4, 2.1)
+p2 = stool_at(1, 2.1)
 meta = {
     'colliders': [{'min': three(c['min'][0], c['max'][1], 0)[0:1] + [0] + [-c['max'][1]], 'max': [c['max'][0], 2.0, -c['min'][1]]} for c in COLLIDERS],
     'bounds': {'x': W / 2 - 0.9, 'z': D / 2 - 0.9},
@@ -345,6 +403,9 @@ meta = {
     'figures': [
         fig('ILEN SARVO', 2.6, 6.0, 200),
         fig('CORIN PELLIS', c0[0], c0[1], 0, seated=True, face=TABLES[3]),
+        fig('PATRON_C', bx - 1.2, -1.7, 90, seated=True, face=(bx + 2.0, -1.7), seat=0.765),
+        fig('PATRON_D', 4.2, 6.2, 150),
+        fig('PATRON_E', p2[0], p2[1], 0, seated=True, face=TABLES[1]),
         fig('GREY COAT', -6.4, -7.0, 180),
         fig('BARTENDER', W / 2 - 1.3, 2.0, 90),
         fig('PATRON_A', p0[0], p0[1], 0, seated=True, face=TABLES[0]),

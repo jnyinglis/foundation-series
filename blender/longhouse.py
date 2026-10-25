@@ -98,12 +98,12 @@ meta = {
     'bounds': {'x': W / 2 - 1.3, 'z': D / 2 - 0.9},
     'spawn': {'pos': three(0.0, -7.2, 1.62), 'yaw': 0.0},
     'figures': [
-        fig('ELDER TOKHAN', 0.0, 7.5, 0, seated=True, face=(0.0, 0.0)),
+        fig('ELDER TOKHAN', 0.0, 7.5, 0, seated=True, face=(0.0, 0.0), seat=0.86),
         fig('GOVERNOR SARIN', -2.0, 2.6, 50),
         fig('ILEN SARVO', -1.7, -3.6, 160),
         fig('CORIN PELLIS', 1.7, -3.3, 200),
-        fig('VILLAGER_A', W / 2 - 1.1, 1.5, 0, seated=True, face=(0.0, 1.5)),
-        fig('VILLAGER_B', -W / 2 + 1.1, 4.0, 0, seated=True, face=(0.0, 4.0)),
+        fig('VILLAGER_A', W / 2 - 1.1, 1.5, 0, seated=True, face=(0.0, 1.5), seat=0.55),
+        fig('VILLAGER_B', -W / 2 + 1.1, 4.0, 0, seated=True, face=(0.0, 4.0), seat=0.55),
     ],
     'tables': [three(0.0, 5.6, 0.74)],
 }

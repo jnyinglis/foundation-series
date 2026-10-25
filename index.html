@@ -31,6 +31,7 @@
     <div class="reticle"></div>
     <div id="target-marker" class="marker"><div class="marker-box"></div><div class="marker-arrow"></div><div id="target-label" class="marker-label"></div></div>
     <div id="message" class="message"></div>
+    <div id="prompt" class="prompt"></div>
     <div id="info" class="info"></div>
     <div id="help" class="help">
       <h3>CONTROLS</h3>
@@ -47,6 +48,7 @@
         <tr><td>K</td><td>journal (story)</td></tr>
         <tr><td>Space / 1-3</td><td>advance dialogue / choose</td></tr>
         <tr><td>V</td><td>voice on / off</td></tr>
+        <tr><td>E</td><td>talk to the person in front of you</td></tr>
         <tr><td>L</td><td>land / return to orbit (Trantor, Radole)</td></tr>
         <tr><td>H</td><td>this panel</td></tr>
         <tr><td>Esc</td><td>release the mouse / close</td></tr>
@@ -58,6 +60,7 @@
         <tr><td>Boost</td><td>hold for full burn</td></tr>
         <tr><td>Chart</td><td>tap a star, then Jump. Pinch to zoom.</td></tr>
         <tr><td>Land</td><td>land when in orbit, or return to the ship</td></tr>
+        <tr><td>Talk</td><td>appears when you face someone; tap to speak</td></tr>
         <tr><td>Tap text</td><td>advance dialogue</td></tr>
       </table>
       <p>Fly to within orbit range of a planet to refuel.</p>
@@ -86,6 +89,7 @@
     <div id="cmdbar" class="cmdbar">
       <button type="button" data-code="KeyM">CHART</button>
       <button type="button" data-code="KeyL" id="cmd-land">LAND</button>
+      <button type="button" data-code="KeyE" id="cmd-talk" hidden>TALK</button>
       <button type="button" data-code="KeyK">JOURNAL</button>
       <button type="button" data-code="KeyI">INFO</button>
       <button type="button" data-code="KeyH">HELP</button>

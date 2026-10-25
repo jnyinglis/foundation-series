@@ -87,7 +87,7 @@ meta = {
     'figures': [
         fig('KEEPER DORNE', -1.6, 4.6, 20),
         fig('CHAIR AMMEL', 0.9, 4.9, 345),
-        fig('STUDENT', 4.2, -7.1, 0, seated=True, face=(4.2, 7.0)),
+        fig('STUDENT', 4.2, -7.1, 0, seated=True, face=(4.2, 7.0), seat=0.52),
         fig('ILEN SARVO', -1.4, -4.2, 160),
         fig('CORIN PELLIS', 1.4, -4.0, 200),
     ],

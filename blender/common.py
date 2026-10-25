@@ -194,10 +194,13 @@ def three(x, y, z):
 def colliders_three():
     return [{'min': [round(c['min'][0], 3), 0, round(-c['max'][1], 3)], 'max': [round(c['max'][0], 3), 2.0, round(-c['min'][1], 3)]} for c in COLLIDERS]
 
-def fig(name, bx, by, yaw_deg=0, seated=False, face=None):
+def fig(name, bx, by, yaw_deg=0, seated=False, face=None, seat=None):
     if face is not None:
         tx, ty = face
         yaw = math.atan2(tx - bx, -(ty - by))
     else:
         yaw = math.radians(yaw_deg)
-    return {'name': name, 'pos': three(bx, by, 0.12 if seated else 0.0), 'yaw': round(yaw, 4), 'seated': seated}
+    d = {'name': name, 'pos': three(bx, by, 0.12 if seated else 0.0), 'yaw': round(yaw, 4), 'seated': seated}
+    if seated and seat is not None:
+        d['seat'] = seat
+    return d

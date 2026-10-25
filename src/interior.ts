@@ -128,7 +128,7 @@ interface SceneMeta {
   colliders: { min: number[]; max: number[] }[];
   bounds: { x: number; z: number };
   spawn: { pos: number[]; yaw: number };
-  figures: { name: string; pos: number[]; yaw: number; seated: boolean }[];
+  figures: { name: string; pos: number[]; yaw: number; seated: boolean; seat?: number }[];
 }
 
 const WINDOW_FRAG = /* glsl */ `
@@ -360,7 +360,7 @@ export class Interior {
         try { actor = await Avatar.load(f.name, `${base}characters/${file}.glb`, f.seated); } catch { actor = null; }
       }
       if (!actor) actor = new Figure(f.name, PALETTES[f.name] ?? PALETTES.PATRON_A, f.seated);
-      const y = actor instanceof Avatar ? 0 : f.pos[1];
+      const y = actor instanceof Avatar ? (f.seated ? actor.seatOffset(f.seat ?? 0.64) : 0) : f.pos[1];
       actor.root.position.set(f.pos[0], y, f.pos[2]);
       actor.setBaseYaw(f.yaw);
       this.scene.add(actor.root);
@@ -481,6 +481,19 @@ export class Interior {
     this.scene.add(f.root);
     this.figures.set(name, f);
     this.colliders.push({ min: new THREE.Vector3(px - 0.5, 0, pz - 0.5), max: new THREE.Vector3(px + 0.5, 2, pz + 0.5) });
+  }
+
+  /** The figure the player stands near and faces, for a talk prompt. */
+  target(): string | null {
+    const fwd = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
+    let best: string | null = null, bestD = 2.6;
+    for (const [n, a] of this.figures) {
+      const d = a.root.position.clone().sub(this.playerPos); d.y = 0;
+      const dist = d.length(); if (dist > bestD || dist < 0.2) continue;
+      if (d.normalize().dot(fwd) < 0.8) continue;
+      best = n; bestD = dist;
+    }
+    return best;
   }
 
   /** Places the camera directly, for captures. */

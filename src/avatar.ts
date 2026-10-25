@@ -42,6 +42,9 @@ export const AVATAR_FILES: Record<string, string> = {
   'DOM VELLORY': 'vellory',
   CROUPIER: 'bartender',
   LISTENER: 'patron_b',
+  PATRON_C: 'patron_c',
+  PATRON_D: 'patron_d',
+  PATRON_E: 'patron_b',
   'ELDER TOKHAN': 'tokhan',
   'GOVERNOR SARIN': 'sarin',
   VILLAGER_A: 'patron_b',
@@ -138,7 +141,14 @@ export class Avatar implements Actor {
     }
     for (const [k, b] of this.bones) this.base.set(k, b.rotation.clone());
     this.baseQ = new Map([...this.bones].map(([k, b]) => [k, b.quaternion.clone()]));
+    this.root.updateMatrixWorld(true);
+    const hipsBone = this.bones.get(B('Hips'));
+    this.hipY = hipsBone ? hipsBone.getWorldPosition(new THREE.Vector3()).y - this.root.getWorldPosition(new THREE.Vector3()).y : 0.6;
   }
+
+  private hipY = 0.6;
+  /** Root height that puts the underside of the seated thighs on a seat of the given top height. */
+  seatOffset(seatTop: number): number { return seatTop - (this.hipY - 0.1); }
 
   private baseQ = new Map<string, THREE.Quaternion>();
 

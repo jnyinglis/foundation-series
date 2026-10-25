@@ -51,7 +51,7 @@ export interface Scene {
   repeat?: boolean;
 }
 
-export interface FigureSpec { name: string; pos: number[]; yaw: number; seated: boolean }
+export interface FigureSpec { name: string; pos: number[]; yaw: number; seated: boolean; /** Top of the seat, in metres, for a seated figure. */ seat?: number }
 
 export interface EnterOptions { label?: string; cast?: string[]; extra?: FigureSpec[] }
 

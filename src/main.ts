@@ -10,6 +10,7 @@ import { StarSystem } from './system';
 import { Ship } from './ship';
 import { IS_TOUCH, TouchControls } from './touch';
 import { ComicShader } from './shaders/comic';
+import { BARKS } from './story/barks';
 import { GalaxyMap } from './galaxy';
 import { Hud } from './hud';
 import { AudioEngine } from './audio';
@@ -201,6 +202,7 @@ function leaveInterior(): void {
   if (view !== 'interior') return;
   interior?.dispose();
   interior = null;
+  hud.setPrompt('');
   renderPass.scene = system.scene;
   camera.fov = 62; camera.updateProjectionMatrix();
   view = 'space';
@@ -211,6 +213,19 @@ async function enterPlace(place: Place, opts: EnterOptions = {}): Promise<void> 
   else if (place === 'city') enterCity();
   else { leaveCity(); leaveInterior(); }
   await new Promise((r) => setTimeout(r, 600));
+}
+/** E: talk to the figure in front of the player, outside a story scene. */
+const barkIndex = new Map<string, number>();
+let talking = false;
+async function talk(): Promise<void> {
+  if (view !== 'interior' || !interior || storyLock || dialogue.open || talking || captureMode) return;
+  const who = interior.target(); if (!who) return;
+  const lines = BARKS[who]; if (!lines?.length) { hud.showMessage(`${who} has nothing to say.`, 2000); return; }
+  const i = barkIndex.get(who) ?? 0; barkIndex.set(who, (i + 1) % lines.length);
+  talking = true; hud.setPrompt('');
+  interior.focus(who);
+  await dialogue.say(who, lines[i]);
+  dialogue.hide(); interior.focus(null); talking = false;
 }
 /** L: land or return. Explore mode lets you visit any charted landing site. */
 function toggleLanding(): void {
@@ -309,6 +324,7 @@ window.addEventListener('keydown', (e) => {
     case 'KeyI': if (!mapOpen) { hud.infoOpen ? hud.hideInfo() : hud.showInfo(world); } break;
     case 'KeyH': hud.toggleHelp(); break;
     case 'KeyL': toggleLanding(); break;
+    case 'KeyE': void talk(); break;
     case 'KeyV': hud.showMessage(voice.toggle() ? 'Voice on.' : 'Voice off.', 2000); break;
     case 'KeyK': if (state.story) { hud.journalOpen ? hud.hideJournal() : hud.showJournal(state.story.journal, state.story.crew.length ? state.story.crew : ['Corin Pellis'], state.story.objective); } break;
   }
@@ -461,7 +477,7 @@ function updateTouch(): void {
   if (!touch) return;
   const active = started && !mapOpen && !jumping && !storyLock && !dialogue.open;
   const mode = !active ? 'none' : view === 'interior' ? 'walk' : 'flight';
-  touch.setMode(mode, started && !jumping, view === 'space' ? 'LAND' : 'RETURN', ship.throttle);
+  touch.setMode(mode, started && !jumping, view === 'space' ? 'LAND' : 'RETURN', ship.throttle, mode === 'walk' && !!interior?.target());
   const t = touch.consume();
   if (mode === 'flight') {
     ship.touchPitch = touch.state.stickY; ship.touchYaw = touch.state.stickX; ship.touchBoost = touch.state.boost;
@@ -577,6 +593,8 @@ function frame(): void {
     audio.setThrottle(0, false);
     hud.setFlight(0, 0, false, 0, state.fuel, FUEL_CAPACITY, state.credits, dateText());
     hud.setStatus(storyLock || dialogue.open ? 'STORY' : document.pointerLockElement ? `${interiorLabel.toUpperCase()} · L TO RETURN` : HINT.walk, '');
+    const near = !storyLock && !dialogue.open && !captureMode ? interior.target() : null;
+    hud.setPrompt(near ? (IS_TOUCH ? `TALK · ${near}` : `E · TALK TO ${near}`) : '');
   } else {
     ship.enabled = shipMayFly();
     ship.update(dt, system.planetRadius);

@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MAIN_STORY, SIDE_STORIES } from '../src/story/index';
 import { castFor, voiceId } from '../src/story/voice';
+import { BARKS } from '../src/story/barks';
 import type { Step } from '../src/story/types';
 
 function loadEnv(): void {
@@ -32,6 +33,7 @@ function collect(steps: Step[]): void {
   }
 }
 for (const st of [MAIN_STORY, ...SIDE_STORIES]) for (const scene of st.scenes) collect(scene.steps);
+for (const [who, ls] of Object.entries(BARKS)) for (const text of ls) { const id = voiceId(who, text); lines.set(id, { id, who, text }); }
 
 const outDir = join(process.cwd(), 'public', 'voice');
 mkdirSync(outDir, { recursive: true });

@@ -32,12 +32,12 @@ CHARACTERS = {
     'corin': dict(
         macro=dict(gender=0.1, age=0.4, muscle=0.6, weight=0.45, proportions=0.55, height=0.58, cupsize=0.45, firmness=0.7, race=race(0.85, 0.05, 0.1)),
         skin='toigo_light_skin_female_freckles.mhmat', hair='cortu_short_messy_hair.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
-        clothes=['joepal_crude_t-shirt_female.mhclo', 'cortu_cargo_pants.mhclo', 'culturalibre_heroine_boots_2.mhclo'],
+        clothes=['trader_jacket.mhclo', 'culturalibre_heroine_boots_2.mhclo'],
     ),
     'taren': dict(
         macro=dict(gender=0.92, age=0.5, muscle=0.55, weight=0.48, proportions=0.7, height=0.62, cupsize=0.5, firmness=0.5, race=race(0.75, 0.15, 0.1)),
         skin='middleage_caucasian_male.mhmat', hair='short01.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
-        clothes=['male_casualsuit05.mhclo', 'culturalibre_male_boots.mhclo'],
+        clothes=['pilot_jacket.mhclo', 'culturalibre_male_boots.mhclo'],
     ),
     'greycoat': dict(
         macro=dict(gender=0.95, age=0.55, muscle=0.5, weight=0.5, proportions=0.55, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.6, 0.3, 0.1)),
@@ -153,6 +153,16 @@ CHARACTERS = {
         macro=dict(gender=0.08, age=0.25, muscle=0.45, weight=0.42, proportions=0.6, height=0.5, cupsize=0.5, firmness=0.7, race=race(0.3, 0.6, 0.1)),
         skin='young_asian_female.mhmat', hair='long01.mhclo', eyebrows='mindfront_eyebrows_10.mhclo', eyelashes='mindfront_eyelashes_01.mhclo',
         clothes=['female_sportsuit01.mhclo', 'shoes03.mhclo'],
+    ),
+    'patron_c': dict(
+        macro=dict(gender=0.92, age=0.3, muscle=0.5, weight=0.45, proportions=0.55, height=0.58, cupsize=0.5, firmness=0.5, race=race(0.6, 0.2, 0.2)),
+        skin='young_caucasian_male.mhmat', hair='short02.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['male_casualsuit03.mhclo', 'shoes04.mhclo'],
+    ),
+    'patron_d': dict(
+        macro=dict(gender=0.08, age=0.62, muscle=0.4, weight=0.58, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.4, race=race(0.2, 0.1, 0.7)),
+        skin='middleage_african_female.mhmat', hair='afro01.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
+        clothes=['toigo_fisherman_sweater.mhclo', 'toigo_wool_pants.mhclo', 'shoes03.mhclo'],
     ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),

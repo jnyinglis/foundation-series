@@ -32,6 +32,7 @@ export class TouchControls {
   private boost = document.getElementById('boost')!;
   private bar = document.getElementById('cmdbar')!;
   private landBtn = document.getElementById('cmd-land')!;
+  private talkBtn = document.getElementById('cmd-talk')!;
   private stickId: number | null = null;
   private stickOrigin = { x: 0, y: 0 };
   private lookId: number | null = null;
@@ -85,7 +86,8 @@ export class TouchControls {
   private setKnob(dx: number, dy: number): void { this.knob.style.transform = `translate(${dx}px, ${dy}px)`; }
 
   /** Shows the controls that fit the current view. The bar stays while the game runs. */
-  setMode(mode: TouchMode, barVisible: boolean, landLabel: string, throttleLevel: number): void {
+  setMode(mode: TouchMode, barVisible: boolean, landLabel: string, throttleLevel: number, talk = false): void {
+    this.talkBtn.hidden = !talk;
     if (mode !== this.mode) {
       this.mode = mode;
       this.root.dataset.mode = mode;
