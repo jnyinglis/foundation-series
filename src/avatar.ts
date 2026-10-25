@@ -42,6 +42,14 @@ export const AVATAR_FILES: Record<string, string> = {
   'DOM VELLORY': 'vellory',
   CROUPIER: 'bartender',
   LISTENER: 'patron_b',
+  'ELDER TOKHAN': 'tokhan',
+  'GOVERNOR SARIN': 'sarin',
+  VILLAGER_A: 'patron_b',
+  VILLAGER_B: 'bartender',
+  'MIRA HEKT': 'hekt',
+  'KEEPER DORNE': 'dorne',
+  'CHAIR AMMEL': 'ammel',
+  STUDENT: 'student',
 };
 
 /** Robots and wrecks reuse the statue file with a material override. */

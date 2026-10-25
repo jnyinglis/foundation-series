@@ -124,6 +124,36 @@ CHARACTERS = {
         skin='middleage_asian_male.mhmat', hair='short02.mhclo', eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
         clothes=['male_elegantsuit01.mhclo', 'shoes02.mhclo'],
     ),
+    'tokhan': dict(
+        macro=dict(gender=0.95, age=0.85, muscle=0.5, weight=0.6, proportions=0.5, height=0.6, cupsize=0.5, firmness=0.5, race=race(0.9, 0.05, 0.05)),
+        skin='old_caucasian_male.mhmat', hair='long01.mhclo', eyebrows='eyebrow003.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['rehmanpolanski_viking_tunic.mhclo', 'rehmanpolanski_viking_pants.mhclo', 'rehmanpolanski_viking_boots.mhclo', 'rehmanpolanski_beard_viking.mhclo'],
+    ),
+    'sarin': dict(
+        macro=dict(gender=0.95, age=0.5, muscle=0.45, weight=0.38, proportions=0.6, height=0.62, cupsize=0.5, firmness=0.5, race=race(0.8, 0.15, 0.05)),
+        skin='young_caucasian_male2.mhmat', hair='short04.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['thegreatengineer_galactic_warrior_uniform.mhclo', 'culturalibre_hero_boots_1.mhclo'],
+    ),
+    'hekt': dict(
+        macro=dict(gender=0.1, age=0.5, muscle=0.65, weight=0.5, proportions=0.5, height=0.58, cupsize=0.4, firmness=0.6, race=race(0.75, 0.1, 0.15)),
+        skin='middleage_caucasian_female.mhmat', hair='bob02.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
+        clothes=['toigo_fisherman_sweater.mhclo', 'toigo_wool_pants.mhclo', 'culturalibre_heroine_boots_1.mhclo'],
+    ),
+    'dorne': dict(
+        macro=dict(gender=0.95, age=0.68, muscle=0.35, weight=0.4, proportions=0.45, height=0.4, cupsize=0.5, firmness=0.5, race=race(0.7, 0.2, 0.1)),
+        skin='middleage_caucasian_male.mhmat', hair='short01.mhclo', eyebrows='eyebrow010.mhclo', eyelashes='eyelashes01.mhclo',
+        clothes=['namuhekam_male_polo_shirt.mhclo', 'cortu_cargo_pants.mhclo', 'shoes05.mhclo'],
+    ),
+    'ammel': dict(
+        macro=dict(gender=0.05, age=0.85, muscle=0.4, weight=0.45, proportions=0.55, height=0.55, cupsize=0.4, firmness=0.4, race=race(0.8, 0.1, 0.1)),
+        skin='old_caucasian_female.mhmat', hair='toigo_blunt_bob.mhclo', eyebrows='mindfront_eyebrows_11.mhclo', eyelashes='mindfront_eyelashes_02.mhclo',
+        clothes=['female_elegantsuit01.mhclo', 'toigo_ankle_boots_female.mhclo'],
+    ),
+    'student': dict(
+        macro=dict(gender=0.08, age=0.25, muscle=0.45, weight=0.42, proportions=0.6, height=0.5, cupsize=0.5, firmness=0.7, race=race(0.3, 0.6, 0.1)),
+        skin='young_asian_female.mhmat', hair='long01.mhclo', eyebrows='mindfront_eyebrows_10.mhclo', eyelashes='mindfront_eyelashes_01.mhclo',
+        clothes=['female_sportsuit01.mhclo', 'shoes03.mhclo'],
+    ),
     'patron_a': dict(
         macro=dict(gender=0.15, age=0.35, muscle=0.5, weight=0.5, proportions=0.5, height=0.5, cupsize=0.5, firmness=0.5, race=race(0.2, 0.7, 0.1)),
         skin='young_asian_female.mhmat', hair='bob01.mhclo', eyebrows='eyebrow011.mhclo', eyelashes='mindfront_eyelashes_05.mhclo',

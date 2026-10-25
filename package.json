@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "voice": "tsx scripts/voice.ts",
+    "storyboard": "tsx scripts/storyboard.ts",
     "portraits": "tsx scripts/portraits.ts",
     "characters": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/characters.py --",
     "scene:library": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/library.py -- public/scenes",
@@ -20,6 +21,8 @@
     "scene:village": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/village.py -- public/scenes",
     "scene:moon": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/moon.py -- public/scenes",
     "scene:archive": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/archive.py -- public/scenes",
+    "scene:longhouse": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/longhouse.py -- public/scenes",
+    "scene:timevault": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/timevault.py -- public/scenes",
     "scene:salon": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/salon.py -- public/scenes",
     "scene:cantina": "/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/cantina.py -- public/scenes",
     "connectivity": "tsx scripts/connectivity.ts"

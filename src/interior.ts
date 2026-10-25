@@ -287,6 +287,16 @@ export class Interior {
       this.scene.add(new THREE.HemisphereLight(0x8a4a48, 0x140808, 0.7));
       for (const [x, z] of [[-5, -2], [5, -2], [0, 4]]) { const l = new THREE.PointLight(0xffc080, 7, 14, 1.5); l.position.set(x, 5.6, z); this.scene.add(l); }
       const win = new THREE.PointLight(0xff7090, 5, 16, 1.4); win.position.set(0, 3.5, -8); this.scene.add(win);
+    } else if (this.sceneName === 'longhouse') {
+      this.scene.add(new THREE.HemisphereLight(0x3a4458, 0x1a1008, 0.8));
+      const fire = new THREE.PointLight(0xff7a30, 26, 16, 1.5); fire.position.set(0, 1.2, 0); this.scene.add(fire);
+      this.fireLight = fire;
+      for (const z of [6, -6]) { const l = new THREE.PointLight(0xffb060, 4, 8, 1.6); l.position.set(0, 2.6, z); this.scene.add(l); }
+      const door = new THREE.PointLight(0x8fb0ff, 5, 10, 1.6); door.position.set(0, 2, 8.5); this.scene.add(door);
+    } else if (this.sceneName === 'timevault') {
+      this.scene.add(new THREE.HemisphereLight(0xe8eeff, 0x9a9a98, 1.2));
+      for (const z of [6, 0, -6]) { const l = new THREE.PointLight(0xdde8ff, 8, 14, 1.4); l.position.set(0, 5.6, z); this.scene.add(l); }
+      const cub = new THREE.PointLight(0x9fd0ff, 10, 10, 1.5); cub.position.set(0, 2.5, -7.5); this.scene.add(cub);
     } else if (this.sceneName === 'estate') {
       this.scene.add(new THREE.HemisphereLight(0xf0f4ff, 0xa0a098, 1.6));
       for (const z of [10, 2, -6]) { const l = new THREE.PointLight(0xffffff, 12, 14, 1.4); l.position.set(0, 5.5, -z); this.scene.add(l); }

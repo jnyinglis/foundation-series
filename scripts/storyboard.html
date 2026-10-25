@@ -1,0 +1,242 @@
+<title>Foundation Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a fixed chart-room screen. A top bar, an infinite board below, a script drawer on the right. */
+:root {
+  --bg: #050a14; --bg2: #0b1424; --panel: rgba(6, 14, 28, 0.92); --fg: #dbe8f5; --dim: #7f95b0; --line: rgba(63, 212, 255, 0.28);
+  --cyan: #3fd4ff; --amber: #ffc14d; --green: #7dffb0; --red: #ff6b6b; --card: #0d1a2e; --card-edge: #1d3350; --grid: rgba(120, 160, 210, 0.08);
+  --display: 'Barlow Condensed', 'Helvetica Neue', Arial, sans-serif; --body: 'Barlow', 'Helvetica Neue', Arial, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #eef2f7; --bg2: #e3e9f1; --panel: rgba(248, 250, 253, 0.94); --fg: #142033; --dim: #5a6c84; --line: rgba(10, 110, 160, 0.3);
+  --cyan: #0a7fb5; --amber: #a86a00; --green: #1f8a4c; --red: #c23b3b; --card: #ffffff; --card-edge: #c9d5e4; --grid: rgba(20, 50, 90, 0.08); color-scheme: light;
+} }
+:root[data-theme="light"] {
+  --bg: #eef2f7; --bg2: #e3e9f1; --panel: rgba(248, 250, 253, 0.94); --fg: #142033; --dim: #5a6c84; --line: rgba(10, 110, 160, 0.3);
+  --cyan: #0a7fb5; --amber: #a86a00; --green: #1f8a4c; --red: #c23b3b; --card: #ffffff; --card-edge: #c9d5e4; --grid: rgba(20, 50, 90, 0.08); color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; overflow: hidden; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--panel); }
+#app { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--panel); border-bottom: 1px solid var(--line); z-index: 5; }
+header h1 { margin: 0; font: 600 20px/1 var(--display); letter-spacing: 0.22em; text-transform: uppercase; }
+header h1 small { display: block; margin-top: 4px; font: 500 10px/1 var(--body); letter-spacing: 0.2em; color: var(--dim); }
+.stats { display: flex; gap: 14px; font: 500 11px/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--fg); font-weight: 600; }
+.tools { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+input[type=search] { font: inherit; padding: 6px 10px; width: 200px; max-width: 100%; background: var(--bg2); color: var(--fg); border: 1px solid var(--card-edge); border-radius: 3px; }
+button { font: 500 11px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; padding: 7px 10px; background: transparent; color: var(--cyan); border: 1px solid var(--line); border-radius: 3px; cursor: pointer; }
+button:hover { background: var(--bg2); }
+button:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+#board { position: relative; overflow: hidden; cursor: grab; touch-action: none; background: var(--bg); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 48px 48px; }
+#board.dragging { cursor: grabbing; }
+#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+#edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+#edges path { fill: none; stroke: var(--amber); stroke-width: 1.5; opacity: 0.35; }
+#edges path.hot { opacity: 1; stroke-width: 2.5; }
+#edges path.goto { stroke: var(--cyan); stroke-dasharray: 5 4; }
+.row-label { position: absolute; width: 190px; font: 600 15px/1.2 var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); }
+.row-label small { display: block; margin-top: 4px; font: 500 10px/1.3 var(--body); letter-spacing: 0.14em; color: var(--dim); }
+.row-label.story { color: var(--amber); }
+.row-label .req { margin-top: 6px; font: 400 10px/1.3 var(--mono); color: var(--amber); letter-spacing: 0; text-transform: none; }
+.row-rule { position: absolute; height: 1px; background: var(--line); opacity: 0.5; }
+.card { position: absolute; width: 300px; background: var(--card); border: 1px solid var(--card-edge); border-radius: 4px; padding: 10px 12px 12px; font-size: 12px; line-height: 1.4; cursor: pointer; transition: opacity 0.15s, border-color 0.15s; }
+.card:hover { border-color: var(--cyan); }
+.card.active { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+.card.faded { opacity: 0.18; }
+.card.end { border-color: var(--green); }
+.card h3 { margin: 0; font: 500 12px/1.2 var(--mono); color: var(--cyan); word-break: break-all; }
+.trigger { margin-top: 6px; font: 600 10px/1 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.chip { padding: 2px 6px; border-radius: 2px; font: 500 10px/1.3 var(--body); letter-spacing: 0.04em; border: 1px solid var(--card-edge); color: var(--dim); background: transparent; }
+.chip.place { color: var(--green); border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+.chip.set { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, transparent); font-family: var(--mono); font-size: 9.5px; }
+.chip.check { color: var(--cyan); border-color: color-mix(in srgb, var(--cyan) 40%, transparent); font-family: var(--mono); font-size: 9.5px; }
+.chip.who { color: var(--fg); }
+.meter { margin-top: 8px; font: 400 11px/1.3 var(--body); color: var(--dim); font-variant-numeric: tabular-nums; }
+.meter b { color: var(--fg); font-weight: 500; }
+ol.choices { margin: 8px 0 0; padding-left: 18px; }
+ol.choices li { margin: 3px 0; color: var(--fg); }
+ol.choices li span { color: var(--dim); font-size: 10.5px; white-space: nowrap; }
+.branch { margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--amber); font-size: 11px; color: var(--dim); }
+.branch code { font: 400 10px var(--mono); color: var(--amber); }
+.endtext { margin-top: 8px; font-size: 11px; color: var(--green); }
+#drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding-block: 16px; padding-left: 16px; padding-right: max(16px, env(safe-area-inset-right, 0px)); z-index: 6; backdrop-filter: blur(6px); }
+#drawer h2 { margin: 0; font: 500 16px/1.2 var(--mono); color: var(--cyan); word-break: break-all; }
+#drawer .sub { margin: 6px 0 14px; font: 500 10px/1.3 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+#drawer .close { position: sticky; top: 0; float: right; margin-left: 8px; }
+.line { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--card-edge); font-size: 13px; line-height: 1.45; }
+.line .who { font: 500 10px/1.6 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.line.narr .who { color: var(--dim); }
+.line.sys { font-size: 11.5px; color: var(--dim); }
+.line.sys .who { color: var(--cyan); }
+.line.option { font-size: 12.5px; }
+.line.option .who { color: var(--green); }
+.line .meta { display: block; font: 400 10.5px/1.5 var(--mono); color: var(--dim); }
+.line.d1 { margin-left: 14px; border-left: 2px solid var(--amber); padding-left: 10px; }
+.line.d2 { margin-left: 28px; border-left: 2px solid var(--amber); padding-left: 10px; }
+.legend { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; font: 500 10px/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); z-index: 5; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--amber); vertical-align: middle; margin-right: 5px; }
+.legend i.goto { border-top-style: dashed; border-color: var(--cyan); }
+.legend b { display: inline-block; width: 10px; height: 10px; vertical-align: middle; margin-right: 5px; border: 1px solid var(--amber); border-radius: 2px; }
+.legend b.check { border-color: var(--cyan); }
+.legend b.place { border-color: var(--green); }
+@media (max-width: 720px) { header h1 { font-size: 16px; } .stats { display: none; } input[type=search] { width: 140px; } .legend { display: none; } }
+@media (prefers-reduced-motion: reduce) { .card, #edges path { transition: none; } }
+</style>
+<div id="app">
+  <header>
+    <h1>Storyboard<small id="gen">Foundation · generated from the story files</small></h1>
+    <div class="stats" id="stats"></div>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Search lines, flags, names" aria-label="Search the storyboard">
+      <button id="fit" type="button">Fit</button>
+      <button id="zin" type="button" aria-label="Zoom in">+</button>
+      <button id="zout" type="button" aria-label="Zoom out">−</button>
+    </div>
+  </header>
+  <div id="board">
+    <div id="world"><svg id="edges"></svg><div id="cards"></div></div>
+    <div class="legend"><span><b></b>sets flag</span><span><b class="check"></b>needs flag</span><span><b class="place"></b>enters a room</span><span><i></i>flag link</span><span><i class="goto"></i>goto</span></div>
+    <aside id="drawer" hidden></aside>
+  </div>
+</div>
+<script>
+const DATA = /*__DATA__*/null;
+const board = document.getElementById('board'), world = document.getElementById('world'), edgesSvg = document.getElementById('edges'), cardsEl = document.getElementById('cards'), drawer = document.getElementById('drawer');
+const CARD_W = 300, GAP_X = 40, GAP_Y = 70, LABEL_W = 220, TOP = 40;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cards = new Map(); // scene id -> { el, card, story, x, y, w, h }
+
+// ---- build the cards
+let sceneCount = 0, lineCount = 0, choiceCount = 0; const flagSet = new Set(), castSet = new Set();
+for (const story of DATA.stories) for (const row of story.rows) for (const c of row.scenes) {
+  sceneCount++; lineCount += c.lines; choiceCount += c.choices.length; c.sets.forEach((f) => flagSet.add(f)); c.speakers.forEach((s) => castSet.add(s));
+  const el = document.createElement('article'); el.className = 'card' + (c.end ? ' end' : ''); el.tabIndex = 0; el.dataset.id = c.id;
+  let h = `<h3>${esc(c.id)}</h3><div class="trigger">${esc(c.trigger)}</div>`;
+  const chips = [];
+  for (const p of c.places) chips.push(`<span class="chip place">→ ${esc(p.split(' · ')[0])}</span>`);
+  for (const s of c.speakers) if (s !== 'NARRATOR') chips.push(`<span class="chip who">${esc(s)}</span>`);
+  if (chips.length) h += `<div class="chips">${chips.join('')}</div>`;
+  const m = [`<b>${c.lines}</b> lines`]; if (c.journal) m.push(`<b>${c.journal}</b> journal`); if (c.credits) m.push(`<b>${c.credits > 0 ? '+' : ''}${c.credits}</b> cr`); if (c.strain) m.push(`strain <b>${c.strain > 0 ? '+' : ''}${c.strain}</b>`); if (c.crew.length) m.push(`crew: <b>${esc(c.crew.join(', '))}</b>`); if (c.unlocks.length) m.push(`unlocks <b>${esc(c.unlocks.join(', '))}</b>`);
+  h += `<div class="meter">${m.join(' · ')}</div>`;
+  if (c.choices.length) h += `<ol class="choices">${c.choices.map((ch) => { const t = [ch.strain ? `strain +${ch.strain}` : '', ch.credits ? `${ch.credits > 0 ? '+' : ''}${ch.credits} cr` : '', ch.needs?.length ? `needs ${ch.needs.join(', ')}` : '', ch.maxStrain !== undefined ? `strain ≤ ${ch.maxStrain}` : ''].filter(Boolean).join(' · '); return `<li>${esc(ch.text)}${t ? ` <span>${esc(t)}</span>` : ''}</li>`; }).join('')}</ol>`;
+  for (const b of c.branches) h += `<div class="branch">if <code>${esc(b.flags.join(' + '))}</code>: ${b.lines} lines${b.else !== undefined ? ` · else ${b.else}` : ''}</div>`;
+  const fl = [];
+  for (const f of c.sets) fl.push(`<span class="chip set">${esc(f)}</span>`);
+  for (const f of c.checks) fl.push(`<span class="chip check">? ${esc(f)}</span>`);
+  if (fl.length) h += `<div class="chips">${fl.join('')}</div>`;
+  if (c.complete) h += `<div class="endtext">completes ${esc(c.complete)}</div>`;
+  if (c.end) h += `<div class="endtext">END · ${esc(c.end)}</div>`;
+  el.innerHTML = h;
+  el.addEventListener('click', () => select(c.id));
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(c.id); } });
+  cardsEl.appendChild(el);
+  cards.set(c.id, { el, card: c, story, x: 0, y: 0, w: CARD_W, h: 0 });
+}
+document.getElementById('stats').innerHTML = `<span><b>${DATA.stories.length}</b> stories</span><span><b>${sceneCount}</b> scenes</span><span><b>${lineCount}</b> lines</span><span><b>${choiceCount}</b> choices</span><span><b>${flagSet.size}</b> flags</span><span><b>${castSet.size - 1}</b> voices</span>`;
+document.getElementById('gen').textContent = `Foundation · generated from the story files · ${DATA.generated}`;
+
+// ---- layout: one row per chapter or side adventure
+let y = TOP, worldW = 0, worldH = 0;
+const labels = [];
+for (const story of DATA.stories) {
+  if (!story.main) {
+    const lab = document.createElement('div'); lab.className = 'row-label story';
+    lab.innerHTML = `${esc(story.title)}<small>${esc(story.subtitle)} · ${esc(story.startWorld)}</small>${story.contract?.requires?.length ? `<div class="req">needs ${esc(story.contract.requires.join(', '))}</div>` : ''}`;
+    lab.style.left = '16px'; lab.style.top = y + 'px'; cardsEl.appendChild(lab);
+  }
+  for (const row of story.rows) {
+    const lab = document.createElement('div'); lab.className = 'row-label';
+    lab.innerHTML = story.main ? `${esc(row.title)}<small>${esc(row.sub ?? '')}</small>` : `<small>${esc(story.contract?.summary ?? '')}</small>`;
+    lab.style.left = '16px'; lab.style.top = (y + (story.main ? 0 : 54)) + 'px'; cardsEl.appendChild(lab);
+    let x = LABEL_W, rowH = 0;
+    for (const c of row.scenes) { const k = cards.get(c.id); k.x = x; k.y = y; k.el.style.left = x + 'px'; k.el.style.top = y + 'px'; k.h = k.el.offsetHeight; rowH = Math.max(rowH, k.h); x += CARD_W + GAP_X; }
+    worldW = Math.max(worldW, x);
+    const rule = document.createElement('div'); rule.className = 'row-rule'; rule.style.left = '16px'; rule.style.top = (y + rowH + GAP_Y / 2) + 'px'; rule.style.width = (worldW - 16) + 'px'; cardsEl.appendChild(rule); labels.push(rule);
+    y += rowH + GAP_Y;
+  }
+}
+worldH = y;
+for (const r of labels) r.style.width = (worldW - 16) + 'px';
+edgesSvg.setAttribute('width', worldW); edgesSvg.setAttribute('height', worldH);
+
+// ---- edges: flag setters to flag consumers, and gotos
+const setters = new Map();
+for (const k of cards.values()) for (const f of k.card.sets) { if (!setters.has(f)) setters.set(f, []); setters.get(f).push(k); }
+const edges = [];
+function link(a, b, cls, label) {
+  const x1 = a.x + a.w, y1 = a.y + Math.min(a.h, 40), x2 = b.x, y2 = b.y + Math.min(b.h, 40);
+  const dx = Math.max(60, Math.abs(x2 - x1) * 0.4);
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('d', `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`);
+  p.setAttribute('class', cls); const t = document.createElementNS('http://www.w3.org/2000/svg', 'title'); t.textContent = label; p.appendChild(t);
+  edgesSvg.appendChild(p); edges.push({ p, a: a.card.id, b: b.card.id });
+}
+for (const k of cards.values()) {
+  for (const f of k.card.checks) for (const s of setters.get(f) ?? []) if (s !== k) link(s, k, 'flag', f);
+  for (const g of k.card.gotos) { const t = cards.get(g); if (t) link(k, t, 'goto', 'goto ' + g); }
+  const req = k.story.contract?.requires ?? [];
+  if (!k.story.main && k === cards.get(k.story.rows[0].scenes[0].id)) for (const f of req) for (const s of setters.get(f) ?? []) link(s, k, 'flag', 'contract needs ' + f);
+}
+
+// ---- pan and zoom
+let scale = 1, tx = 0, ty = 0;
+function apply() { world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; }
+function fit() { const r = board.getBoundingClientRect(); scale = Math.min(1, (r.width - 32) / worldW); scale = Math.max(scale, 0.08); tx = 16; ty = 16; apply(); }
+function home() { scale = Math.min(1, Math.max(0.6, (board.getBoundingClientRect().width - 32) / (LABEL_W + 3 * (CARD_W + GAP_X)))); tx = 16; ty = 16; apply(); }
+function zoomAt(f, cx, cy) { const ns = Math.min(3, Math.max(0.08, scale * f)); tx = cx - (cx - tx) * (ns / scale); ty = cy - (cy - ty) * (ns / scale); scale = ns; apply(); }
+board.addEventListener('wheel', (e) => { e.preventDefault(); const r = board.getBoundingClientRect(); if (e.ctrlKey || !e.deltaX) zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); else { tx -= e.deltaX; ty -= e.deltaY; apply(); } }, { passive: false });
+const pointers = new Map(); let lastDist = 0, moved = false;
+board.addEventListener('pointerdown', (e) => { if (e.target.closest('#drawer, button, input')) return; pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); board.setPointerCapture(e.pointerId); board.classList.add('dragging'); moved = false; });
+board.addEventListener('pointermove', (e) => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId); pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) { tx += e.clientX - prev.x; ty += e.clientY - prev.y; if (Math.abs(e.clientX - prev.x) + Math.abs(e.clientY - prev.y) > 1) moved = true; apply(); }
+  else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); const r = board.getBoundingClientRect(); if (lastDist) zoomAt(d / lastDist, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top); lastDist = d; moved = true; }
+});
+const up = (e) => { pointers.delete(e.pointerId); if (!pointers.size) { board.classList.remove('dragging'); lastDist = 0; } };
+board.addEventListener('pointerup', up); board.addEventListener('pointercancel', up);
+cardsEl.addEventListener('click', (e) => { if (moved) e.stopPropagation(); }, true);
+document.getElementById('fit').addEventListener('click', fit);
+document.getElementById('zin').addEventListener('click', () => { const r = board.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
+document.getElementById('zout').addEventListener('click', () => { const r = board.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
+window.addEventListener('resize', () => { /* keep the view; the board is infinite */ });
+
+// ---- selection and the script drawer
+let activeId = null;
+function select(id) {
+  if (moved) return;
+  activeId = id;
+  for (const k of cards.values()) k.el.classList.toggle('active', k.card.id === id);
+  for (const e of edges) e.p.classList.toggle('hot', e.a === id || e.b === id);
+  const k = cards.get(id); const c = k.card;
+  let h = `<button class="close" type="button" id="close">Close</button><h2>${esc(c.id)}</h2><div class="sub">${esc(k.story.title)} · ${esc(c.trigger)}</div>`;
+  for (const l of c.script) {
+    const cls = l.kind === 'say' ? (l.who === 'NARRATOR' ? 'narr' : 'say') : l.kind === 'option' ? 'option' : 'sys';
+    const who = l.kind === 'say' ? l.who : l.kind === 'option' ? 'choice' : l.kind;
+    h += `<div class="line ${cls} d${Math.min(2, l.depth)}"><span class="who">${esc(who)}</span><span>${esc(l.text)}${l.meta ? `<span class="meta">${esc(l.meta)}</span>` : ''}</span></div>`;
+  }
+  drawer.innerHTML = h; drawer.hidden = false;
+  document.getElementById('close').addEventListener('click', () => { drawer.hidden = true; activeId = null; for (const q of cards.values()) q.el.classList.remove('active'); for (const e of edges) e.p.classList.remove('hot'); });
+  const r = board.getBoundingClientRect(); const cx = (k.x + k.w / 2) * scale + tx, cy = (k.y + 60) * scale + ty;
+  const vis = r.width - (drawer.offsetWidth || 0);
+  if (cx < 0 || cx > vis || cy < 0 || cy > r.height) { tx += vis / 2 - cx; ty += r.height / 2 - cy; apply(); }
+}
+
+// ---- search: dim everything that does not match
+const q = document.getElementById('q');
+q.addEventListener('input', () => {
+  const s = q.value.trim().toLowerCase();
+  for (const k of cards.values()) {
+    const hay = s && (k.card.id + ' ' + k.story.title + ' ' + k.card.trigger + ' ' + k.card.sets.join(' ') + ' ' + k.card.checks.join(' ') + ' ' + k.card.script.map((l) => (l.who ?? '') + ' ' + l.text).join(' ')).toLowerCase();
+    k.el.classList.toggle('faded', !!s && !hay.includes(s));
+  }
+});
+home();
+if (location.hash.length > 1 && cards.has(location.hash.slice(1))) select(location.hash.slice(1));
+</script>
